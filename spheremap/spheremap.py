@@ -3,6 +3,7 @@ from collections.abc import Iterable
 from copy import deepcopy
 import uuid
 import time
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -12,6 +13,7 @@ import bokeh.plotting
 import astropy.units as u
 from astropy.coordinates import SkyCoord, EarthLocation
 from astropy.time import Time
+from astropy.utils.exceptions import AstropyWarning
 import astropy.visualization
 import panel as pn
 from IPython.display import display
@@ -138,7 +140,6 @@ class SphereMap:
             .sidereal_time("mean")
             .deg
         )
-
         return lst
 
     @lst.setter
@@ -646,12 +647,14 @@ class SphereMap:
             Bokeh data source with points along the circle.
         """
 
-        center = astropy.coordinates.AltAz(
+        center = SkyCoord(
             alt=alt * u.deg,
             az=az * u.deg,
             obstime=astropy.time.Time(self.mjd, format="mjd", scale="utc"),
             location=self.location,
+            frame="altaz",
         ).transform_to(astropy.coordinates.ICRS)
+
         center_ra = center.ra.deg
         center_decl = center.dec.deg
 
