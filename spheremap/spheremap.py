@@ -3,7 +3,6 @@ from collections.abc import Iterable
 from copy import deepcopy
 import uuid
 import time
-import warnings
 
 import numpy as np
 import pandas as pd
@@ -13,7 +12,6 @@ import bokeh.plotting
 import astropy.units as u
 from astropy.coordinates import SkyCoord, EarthLocation
 from astropy.time import Time
-from astropy.utils.exceptions import AstropyWarning
 import astropy.visualization
 import panel as pn
 from IPython.display import display
@@ -24,7 +22,7 @@ except ModuleNotFoundError:
     pass
 
 from .readjs import read_javascript
-from .sphere import rotate_cart
+
 
 ProjSliders = namedtuple("ProjSliders", ["alt", "az", "mjd"])
 
@@ -35,6 +33,18 @@ ALMOST_90 = np.degrees(np.arccos(2 * np.finfo(float).resolution))
 
 
 class SphereMap:
+    """Base for maps of the sphere.
+
+    Parameters
+    ----------
+    plot : `bokeh.plotting.figure.Figure`, optional
+        Figure to which to add the map, by default None
+    mjd : `float`, optional
+        The Modified Julian Date
+    location: `EarthLocation` or `str`, optional
+        The location of the observatory, defaults to lsst.
+    """
+
     alt_limit = 0
     transform_js_fnames = ("coord_utils.js", "laea.js")
     transform_js_call = "return laeaTransform()"
@@ -55,19 +65,6 @@ class SphereMap:
     default_horizon_line_kwargs = {"color": "black", "line_width": 6}
 
     def __init__(self, plot=None, mjd=None, location="Cerro Pachon"):
-        """Base for maps of the sphere.
-
-        Parameters
-        ----------
-        plot : `bokeh.plotting.figure.Figure`, optional
-            Figure to which to add the map, by default None
-        mjd : `float`, optional
-            The Modified Julian Date
-        location: `EarthLocation` or `str`, optional
-            The location of the observatory, defaults to lsst.
-        """
-
-        # self.laea_limit_mag = laea_limit_mag
         self.mjd = Time.now().mjd if mjd is None else mjd
 
         if isinstance(location, EarthLocation):
@@ -1159,21 +1156,15 @@ class SphereMap:
         ra = np.stack(patches_data.ra.values)
         decl = np.stack(patches_data.decl.values)
 
-        if True:
-            wide_shape = ra.shape
+        wide_shape = ra.shape
 
-            ra = ra.flatten()
-            decl = decl.flatten()
+        ra = ra.flatten()
+        decl = decl.flatten()
 
-            data = {
-                "ra": ra.reshape(*wide_shape).tolist(),
-                "decl": decl.reshape(*wide_shape).tolist(),
-            }
-        else:
-            data = {
-                "ra": ra.tolist(),
-                "decl": decl.tolist(),
-            }
+        data = {
+            "ra": ra.reshape(*wide_shape).tolist(),
+            "decl": decl.reshape(*wide_shape).tolist(),
+        }
 
         # Add any additional data provided
         for column_name in patches_df.columns:
@@ -1358,338 +1349,12 @@ class SphereMap:
         pass
 
 
-class Planisphere(SphereMap):
-    x_col = "x_laea"
-    y_col = "y_laea"
-    transform_js_fnames = ("coord_utils.js", "laea.js")
-    transform_js_call = "return laeaTransform()"
-    default_title = "Planisphere"
-
-    def __init__(
-        self, plot=None, mjd=None, location="Cerro Pachon", laea_limit_mag=88.0
-    ):
-        super().__init__(plot, mjd, location)
-        self.laea_limit_mag = laea_limit_mag
-
-    @property
-    def laea_rot(self):
-        """Return the `rot` tuple to be used in the Lambert EA projection
-
-        Returns
-        -------
-        rot : `tuple` [`float`]
-            The `rot` tuple to be passed to `healpy.projector.AzimuthalProj`.
-        """
-        rot = (0, -90, 0) if self.location.lat.deg < 0 else (0, 90, 180)
-        return rot
-
-    @property
-    def laea_limit(self):
-        """Return the lat. furthest from the center for the LAEA projection.
-
-        Returns
-        -------
-        `limit` : `float`
-            The maximum (or minimum) value for the latitude shown in the
-            Lambert Azimuthal Equal Area plot.
-        """
-        limit = (
-            self.laea_limit_mag
-            if self.location.lat.deg < 0
-            else -1 * self.laea_limit_mag
-        )
-        return limit
-
-    def _add_projection_columns(self, hpix, nside):
-        """Adds pre-calculated projection columns for this projection."""
-        proj = hp.projector.AzimuthalProj(rot=self.laea_rot, lamb=True)
-        proj.set_flip("astro")
-        hpix = super()._add_projection_columns(hpix, nside, proj)
-
-        # Healpixels at the opposite pole from the center behave badly, so
-        # hide them.
-        for hp_idx, decl in enumerate(hpix.data["center_decl"]):
-            if (self.location.lat.deg < 0 and decl > self.laea_limit) or (
-                self.location.lat.deg > 0 and decl < self.laea_limit
-            ):
-                for corner_idx in range(len(hpix.data["x_laea"][hp_idx])):
-                    hpix.data["x_laea"][hp_idx][corner_idx] = np.NaN
-                    hpix.data["y_laea"][hp_idx][corner_idx] = np.NaN
-
-        return hpix
-
-
-class MollweideMap(SphereMap):
-    x_col = "x_moll"
-    y_col = "y_moll"
-    transform_js_fnames = ("coord_utils.js", "mollweide.js")
-    transform_js_call = "return mollweideTransform()"
-    default_title = "Mollweide"
-
-    def _add_projection_columns(self, hpix, nside):
-        """Adds pre-calculated projection columns for this projection."""
-        proj = hp.projector.MollweideProj()
-        proj.set_flip("astro")
-        hpix = super()._add_projection_columns(hpix, nside, proj)
-
-        resol = np.degrees(hp.nside2resol(nside))
-        num_pix = len(hpix.data["ra"])
-        for i in range(num_pix):
-            center_ra = hpix.data["center_ra"][i]
-            center_decl = hpix.data["center_decl"][i]
-
-            # Skip any healpixes not close to the discontinuity
-            ra_resol = resol / np.cos(np.radians(center_decl))
-            if np.abs((center_ra + 180) % 360 - 180) < 2 * ra_resol:
-                continue
-
-            # If there are any x points with a different sign than the center,
-            # set them to nan
-            for j, x in enumerate(hpix.data["x_moll"][i]):
-                center_ra_sign = 1 if center_ra % 360 < 180 else -1
-                # Remember, we are looking out from the Earth, so
-                # positive RA is left, negative right
-                if np.sign(x) == center_ra_sign:
-                    hpix.data["x_moll"][i][j] = np.NaN
-                    hpix.data["y_moll"][i][j] = np.NaN
-                    pass
-
-        return hpix
-
-
 class MovingSphereMap(SphereMap):
     def _finish_data_source(self, data_source):
         if self.x_col in data_source.data:
             self.set_js_update_func(data_source)
         else:
             self.set_emit_update_func(data_source)
-
-
-class HorizonMap(MovingSphereMap):
-    x_col = "x_hz"
-    y_col = "y_hz"
-    transform_js_fnames = ("coord_utils.js", "horizon.js")
-    transform_js_call = "return horizonTransform()"
-    proj_slider_keys = ["mjd"]
-    default_title = "Horizon"
-
-    def _add_projection_columns(self, hpix, nside):
-        """Adds pre-calculated projection columns for this projection."""
-        coord_cols = ["ra", "decl"]
-        n_hpix = len(hpix.data["ra"])
-        corners_per_hpix = len(hpix.data["ra"][0])
-        corners = (
-            hpix.to_df()
-            .loc[:, ["hpid"] + coord_cols]
-            .explode(column=coord_cols, ignore_index=True)
-        )
-        assert len(corners) == n_hpix * corners_per_hpix
-
-        x_hz, y_hz = self.eq_to_horizon(
-            corners["ra"].astype(float), corners["decl"].astype(float)
-        )
-
-        hpix.add(x_hz.reshape(n_hpix, corners_per_hpix).tolist(), name="x_hz")
-        hpix.add(y_hz.reshape(n_hpix, corners_per_hpix).tolist(), name="y_hz")
-
-        return hpix
-
-    def set_js_update_func(self, data_source):
-        """Set the javascript update functions for each slider
-
-        Parameters
-        ----------
-        data_source : `bokeh.models.ColumnDataSource`
-            The bokeh data source to update.
-        """
-        update_func = bokeh.models.CustomJS(
-            args=dict(
-                data_source=data_source,
-                center_alt_slider=90,
-                center_az_slider=0,
-                mjd_slider=self.sliders["mjd"],
-                lat=self.location.lat.deg,
-                lon=self.location.lon.deg,
-            ),
-            code=self.update_js,
-        )
-
-        self.update_functions.append(update_func)
-        self.force_update_time.js_on_change("text", update_func)
-
-        for proj_slider_key in self.proj_slider_keys:
-            try:
-                self.sliders[proj_slider_key].js_on_change("value", update_func)
-            except KeyError:
-                pass
-
-    def add_sliders(self, center_alt=90, center_az=0):
-        """Add (already defined) sliders to the map."""
-        super().add_sliders()
-        self.sliders["mjd"] = bokeh.models.Slider(
-            start=self.mjd - 1,
-            end=self.mjd + 1,
-            value=self.mjd,
-            step=1.0 / (24 * 60),
-            title="MJD",
-        )
-
-        self.visible_slider_names.append("mjd")
-
-
-class ArmillarySphere(MovingSphereMap):
-    x_col = "x_orth"
-    y_col = "y_orth"
-    transform_js_fnames = ("coord_utils.js", "orthographic.js")
-    transform_js_call = "return orthoTransform()"
-    proj_slider_keys = ["alt", "az", "mjd"]
-    default_title = "Armillary Sphere"
-
-    def to_orth_zenith(self, hpx, hpy, hpz):
-        """Convert healpy vector coordinates to orthographic coordinates
-
-        Parameters
-        ----------
-        hpx : `numpy.ndarray`
-            Healpy vector x coordinates
-            x=1, y=0, z=0 corresponds to R.A.=0 deg, Decl=0 deg.
-            x=-1, y=0, z=0 corresponds to R.A.=180 deg, Decl=0 deg.
-        hpy : `numpy.ndarray`
-            Healpy vector y coordinates
-            x=0, y=1, z=0 corresponds to R.A.=90 deg, Decl=0 deg.
-            x=0, y=-1, z=0 corresponds to R.A.=270 deg, Decl=0 deg.
-        hpz : `numpy.ndarray`
-            Healpy vector z coordinates
-            x=0, y=0, z=1 corresponds to Decl=90 deg.
-            x=0, y=0, z=-1 corresponds to Decl=-90 deg.
-
-        Returns
-        -------
-        x : `numpy.ndarray`
-            Orthographic x coordinate (positive to the right)
-        y : `numpy.ndarray`
-            Orthographic y coordinate (positive up)
-        z : `numpy.ndarray`
-            Orthographic z coordinate (positive toward the viewer)
-        """
-        x1, y1, z1 = rotate_cart(0, 0, 1, -90, hpx, hpy, hpz)
-        x2, y2, z2 = rotate_cart(1, 0, 0, self.location.lat.deg + 90, x1, y1, z1)
-
-        npole_x1, npole_y1, npole_z1 = rotate_cart(0, 0, 1, -90, 0, 0, 1)
-        npole_x2, npole_y2, npole_z2 = rotate_cart(
-            1, 0, 0, self.location.lat.deg + 90, npole_x1, npole_y1, npole_z1
-        )
-        x3, y3, z3 = rotate_cart(npole_x2, npole_y2, npole_z2, -self.lst, x2, y2, z2)
-
-        # x3, y3, z3 have the center right, now rotate it so that north is "up"
-        # the 2-3 transform is about the axis through the n pole, so
-        # the n pole is the same in 3 an 2.
-
-        # Find the direction of the north pole, angle form +x axis toward
-        # +y axis
-        npole_x3, npole_y3 = npole_x2, npole_y2
-        orient = np.degrees(np.arctan2(npole_y3, npole_x3))
-
-        # To the n pole on the y axis, we must rotate it the rest of the 90 deg
-        x4, y4, z4 = rotate_cart(0, 0, 1, 90 - orient, x3, y3, z3)
-
-        # In astronomy, we are looking out of the sphere from the center to the
-        # back (which naturally results in west to the right).
-        # Positive z is out of the screen behind us, and we are at the center,
-        # so to visible part is when z is negative (coords[2]<=0).
-        # So, set the points with positive z to NaN so they are
-        # not shown, because they are behind the observer.
-
-        # Use np.finfo(z3[0]).resolution instead of exactly 0, because the
-        # assorted trig operations result in values slightly above or below
-        # 0 when the horizon is in principle exactly 0, and this gives an
-        # irregularly dotted/dashed appearance to the horizon if
-        # a cutoff of exactly 0 is used.
-
-        try:
-            orth_invisible = z4 > np.finfo(z4.dtype).resolution
-        except ValueError:
-            # If z4 is somehow an integer
-            orth_invisible = z4 > 0
-
-        x4[orth_invisible] = np.nan
-        y4[orth_invisible] = np.nan
-        z4[orth_invisible] = np.nan
-
-        return x4, y4, z4
-
-    def _add_projection_columns(self, hpix, nside):
-        """Adds pre-calculated projection columns for this projection."""
-        hp_vec_cols = ["x_hp", "y_hp", "z_hp"]
-        corners = (
-            hpix.to_df()
-            .loc[:, ["hpid"] + hp_vec_cols]
-            .explode(column=hp_vec_cols, ignore_index=True)
-        )
-        corners["x_orth"], corners["y_orth"], corners["z_orth"] = self.to_orth_zenith(
-            corners["x_hp"], corners["y_hp"], corners["z_hp"]
-        )
-
-        hpix_data = corners.groupby("hpid").agg(lambda x: x.tolist())
-
-        for column in ["x_orth", "y_orth", "z_orth"]:
-            hpix.add(hpix_data[column].tolist(), name=column)
-
-        return hpix
-
-    def set_js_update_func(self, data_source):
-        """Set the javascript update functions for each slider
-
-        Parameters
-        ----------
-        data_source : `bokeh.models.ColumnDataSource`
-            The bokeh data source to update.
-        """
-        update_func = bokeh.models.CustomJS(
-            args=dict(
-                data_source=data_source,
-                center_alt_slider=self.sliders["alt"],
-                center_az_slider=self.sliders["az"],
-                mjd_slider=self.sliders["mjd"],
-                lat=self.location.lat.deg,
-                lon=self.location.lon.deg,
-            ),
-            code=self.update_js,
-        )
-
-        self.update_functions.append(update_func)
-        self.force_update_time.js_on_change("text", update_func)
-
-        for proj_slider_key in self.proj_slider_keys:
-            try:
-                self.sliders[proj_slider_key].js_on_change("value", update_func)
-            except KeyError:
-                pass
-
-    def add_sliders(self, center_alt=90, center_az=180):
-        """Add (already defined) sliders to the map."""
-        super().add_sliders()
-        self.sliders["alt"] = bokeh.models.Slider(
-            start=-90,
-            end=90,
-            value=center_alt,
-            step=np.pi / 180,
-            title="center alt",
-        )
-        self.sliders["az"] = bokeh.models.Slider(
-            start=-90, end=360, value=center_az, step=np.pi / 180, title="center Az"
-        )
-        self.sliders["mjd"] = bokeh.models.Slider(
-            start=self.mjd - 1,
-            end=self.mjd + 1,
-            value=self.mjd,
-            step=1.0 / (24 * 60),
-            title="MJD",
-        )
-
-        self.visible_slider_names.append("alt")
-        self.visible_slider_names.append("az")
-        self.visible_slider_names.append("mjd")
 
 
 def make_zscale_linear_cmap(
