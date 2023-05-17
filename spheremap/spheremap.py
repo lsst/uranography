@@ -46,19 +46,15 @@ class SphereMap:
     """
 
     alt_limit = 0
-    transform_js_fnames = ("coord_utils.js", "laea.js")
-    transform_js_call = "return laeaTransform()"
-    update_js_fnames = (
-        "coord_utils.js",
-        "orthographic.js",
-        "horizon.js",
-        "mollweide.js",
-        "laea.js",
-        "update.js",
-    )
+    transform_js_fnames = ("coord_utils.js", "hp.js")
+    transform_js_call = "return hpTransform()"
+    update_js_fnames = ("coord_utils.js", "hp.js")
+    update_js_command = "updateHpData()"
     max_star_glyph_size = 15
     proj_slider_keys = ["mjd"]
     default_title = ""
+    x_col = "x_hp"
+    y_col = "y_hp"
     default_graticule_line_kwargs = {"color": "darkgray"}
     default_ecliptic_line_kwargs = {"color": "green"}
     default_galactic_plane_line_kwargs = {"color": "blue"}
@@ -160,6 +156,9 @@ class SphereMap:
             Javascript code to update the bokeh model.
         """
         js_code = "\n".join(read_javascript(fn) for fn in self.update_js_fnames)
+        js_code = "\n".join(
+            [js_code, self.update_js_command, "data_source.change.emit()"]
+        )
         return js_code
 
     def proj_transform(self, proj_coord, data_source):
@@ -337,8 +336,8 @@ class SphereMap:
                 "x_hp": hpix_bounds_vec[:, 0, :].tolist(),
                 "y_hp": hpix_bounds_vec[:, 1, :].tolist(),
                 "z_hp": hpix_bounds_vec[:, 2, :].tolist(),
-                "ra": ra.reshape(npix, 4).tolist(),
-                "decl": decl.reshape(npix, 4).tolist(),
+                "ra": ra.reshape(npix, 4 * bound_step).tolist(),
+                "decl": decl.reshape(npix, 4 * bound_step).tolist(),
             }
         )
 
@@ -700,7 +699,7 @@ class SphereMap:
         try:
             glyph_size = points_df["glyph_size"]
         except KeyError:
-            glyph_size = 10
+            glyph_size = [10] * len(points_df)
 
         data = {
             "name": name,
@@ -807,6 +806,9 @@ class SphereMap:
 
     def add_sliders(self):
         """Add (already defined) sliders to the map."""
+
+        # In this, the base class, there are no sliders
+        # to add, so just initialize the dictionary.
         self.sliders = OrderedDict()
 
     def add_mjd_slider(self):
@@ -901,8 +903,16 @@ class SphereMap:
         ----------
         data : `numpy.ndarray`
             Healpixel values (RING pixel ordering)
-        cmap : `bokeh.core.properties.ColorSpec`, optional
-            _description_, by default None
+        cmap : `dict`, optional
+            With the following keys:
+
+            ``"field"``
+                The field to map to color (`str`)
+            ``"transform"``
+                The transform from value to color
+                (`bokeh.models.mappers.ColorMapper`)
+
+            by default None
         nside : `int`, optional
             Healpix nside to use for display, by default 16
         bound_step : `int`, optional
@@ -913,9 +923,16 @@ class SphereMap:
         -------
         data_sounce : `bokeh.models.ColumnDataSource`
             The data source with the healpix values and bounds.
-        cmap : `bokeh.core.properties.ColorSpec`
-            The color map used
-        hp_glype : `bokeh.models.glyphs.Patches`
+        cmap : `dict`
+            With the following keys:
+
+            ``"field"``
+                The field to map to color (`str`)
+            ``"transform"``
+                The transform from value to color
+                (`bokeh.models.mappers.ColorMapper`)
+
+        hp_glyph : `bokeh.models.glyphs.Patches`
             The bokeh glyphs for the plotted patches.
         """
         if isinstance(data, bokeh.models.DataSource):
@@ -1138,7 +1155,7 @@ class SphereMap:
 
         Parameters
         ----------
-        patches_data : `pandas.DataFrame`
+        patches_data : `pandas.DataFrame` or `dict`
             Must contain the following columns or keys:
 
             ``"ra"``
@@ -1148,13 +1165,13 @@ class SphereMap:
 
         Returns
         -------
-        point : `bokeh.models.ColumnDataSource`
-            A data source with point locations, including projected coords.
+        data_source : `bokeh.models.ColumnDataSource`
+            A data source with patch coordinates.
         """
 
         patches_df = pd.DataFrame(patches_data)
-        ra = np.stack(patches_data.ra.values)
-        decl = np.stack(patches_data.decl.values)
+        ra = np.stack(patches_df.ra.values)
+        decl = np.stack(patches_df.decl.values)
 
         wide_shape = ra.shape
 
@@ -1251,7 +1268,7 @@ class SphereMap:
         data_source : `bokeh.models.ColumnDataSource`
             The bokeh data source with points defining star locations.
         """
-        self.star_data = points_data
+        self.star_data = pd.DataFrame(points_data)
         if data_source is None:
             self.star_data_source = self.make_points(self.star_data)
         else:
@@ -1276,8 +1293,7 @@ class SphereMap:
             mag_slider.on_change("value", self.limit_stars)
 
             self.sliders["mag_limit"] = mag_slider
-
-        self.visible_slider_names.append("mag_limit")
+            self.visible_slider_names.append("mag_limit")
 
         return self.star_data_source
 

@@ -17,6 +17,8 @@ class HorizonMap(MovingSphereMap):
 
     x_col = "x_hz"
     y_col = "y_hz"
+    update_js_fnames = ("coord_utils.js", "horizon.js")
+    update_js_command = "updateHorizonData()"
     transform_js_fnames = ("coord_utils.js", "horizon.js")
     transform_js_call = "return horizonTransform()"
     proj_slider_keys = ["mjd"]
@@ -51,6 +53,7 @@ class HorizonMap(MovingSphereMap):
         data_source : `bokeh.models.ColumnDataSource`
             The bokeh data source to update.
         """
+
         update_func = bokeh.models.CustomJS(
             args=dict(
                 data_source=data_source,

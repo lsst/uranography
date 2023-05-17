@@ -1,4 +1,5 @@
 import healpy as hp
+import numpy as np
 from .spheremap import SphereMap
 
 
@@ -18,6 +19,8 @@ class Planisphere(SphereMap):
 
     x_col = "x_laea"
     y_col = "y_laea"
+    update_js_fnames = ("coord_utils.js", "laea.js")
+    update_js_command = "updateLAEAData()"
     transform_js_fnames = ("coord_utils.js", "laea.js")
     transform_js_call = "return laeaTransform()"
     default_title = "Planisphere"

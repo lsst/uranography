@@ -57,7 +57,7 @@ function horizonTransform() {
 }
 
 function updateHorizonData() {
-
+    console.log("Updating horizon data")
     for (let i = 0; i < ra.length; i++) {
         if (typeof (ra[i]) === 'number') {
             const horizonCart = eqToHorizonCart(ra[i] * Math.PI / 180, decl[i] * Math.PI / 180, lat, lst)

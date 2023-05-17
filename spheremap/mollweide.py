@@ -18,6 +18,8 @@ class MollweideMap(SphereMap):
 
     x_col = "x_moll"
     y_col = "y_moll"
+    update_js_fnames = ("coord_utils.js", "mollweide.js")
+    update_js_command = "updateMollweideData()"
     transform_js_fnames = ("coord_utils.js", "mollweide.js")
     transform_js_call = "return mollweideTransform()"
     default_title = "Mollweide"
@@ -48,6 +50,5 @@ class MollweideMap(SphereMap):
                 if np.sign(x) == center_ra_sign:
                     hpix.data["x_moll"][i][j] = np.NaN
                     hpix.data["y_moll"][i][j] = np.NaN
-                    pass
 
         return hpix

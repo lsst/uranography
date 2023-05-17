@@ -20,6 +20,8 @@ class ArmillarySphere(MovingSphereMap):
 
     x_col = "x_orth"
     y_col = "y_orth"
+    update_js_fnames = ("coord_utils.js", "orthographic.js")
+    update_js_command = "updateOrthoData()"
     transform_js_fnames = ("coord_utils.js", "orthographic.js")
     transform_js_call = "return orthoTransform()"
     proj_slider_keys = ["alt", "az", "mjd"]
@@ -71,7 +73,9 @@ class ArmillarySphere(MovingSphereMap):
         orient = np.degrees(np.arctan2(npole_y3, npole_x3))
 
         # To the n pole on the y axis, we must rotate it the rest of the 90 deg
-        x4, y4, z4 = rotate_cart(0, 0, 1, 90 - orient, x3, y3, z3)
+        x4, y4, z4 = rotate_cart(
+            0, 0, 1, 90 - orient, x3, y3, z3
+        )  # pylint: disable=C0103
 
         # In astronomy, we are looking out of the sphere from the center to the
         # back (which naturally results in west to the right).
@@ -125,6 +129,7 @@ class ArmillarySphere(MovingSphereMap):
         data_source : `bokeh.models.ColumnDataSource`
             The bokeh data source to update.
         """
+
         update_func = bokeh.models.CustomJS(
             args=dict(
                 data_source=data_source,

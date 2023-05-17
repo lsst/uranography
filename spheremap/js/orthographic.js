@@ -178,7 +178,7 @@ function orthoTransform() {
     if (xs.length == 0) {
         return result
     }
-    
+
     const coord_idx = (proj_coord == 'x') ? 0 : 1
 
     const x_hp = new Array(ra.length)
@@ -187,7 +187,7 @@ function orthoTransform() {
 
     for (let i = 0; i < ra.length; i++) {
         if (typeof (ra[0]) === 'number') {
-            let cartCoords = eqToCart(ra[i]*Math.PI/180, decl[i]*Math.PI/180)
+            let cartCoords = eqToCart(ra[i] * Math.PI / 180, decl[i] * Math.PI / 180)
             x_hp[i] = cartCoords[0]
             y_hp[i] = cartCoords[1]
             z_hp[i] = cartCoords[2]
@@ -196,7 +196,7 @@ function orthoTransform() {
             y_hp[i] = new Array(ra[i].length)
             z_hp[i] = new Array(ra[i].length)
             for (let j = 0; j < ra[i].length; j++) {
-                let cartCoords = eqToCart(ra[i][j]*Math.PI/180, decl[i][j]*Math.PI/180)
+                let cartCoords = eqToCart(ra[i][j] * Math.PI / 180, decl[i][j] * Math.PI / 180)
                 x_hp[i][j] = cartCoords[0]
                 y_hp[i][j] = cartCoords[1]
                 z_hp[i][j] = cartCoords[2]
@@ -266,13 +266,13 @@ function updateOrthoData() {
 
     for (let i = 0; i < ra.length; i++) {
         if (typeof (ra[i]) === 'number') {
-            let cartCoords = eqToCart(ra[i]*Math.PI/180, decl[i]*Math.PI/180)
+            let cartCoords = eqToCart(ra[i] * Math.PI / 180, decl[i] * Math.PI / 180)
             x_hp[i] = cartCoords[0]
             y_hp[i] = cartCoords[1]
             z_hp[i] = cartCoords[2]
         } else {
             for (let j = 0; j < ra[i].length; j++) {
-                let cartCoords = eqToCart(ra[i][j]*Math.PI/180, decl[i][j]*Math.PI/180)
+                let cartCoords = eqToCart(ra[i][j] * Math.PI / 180, decl[i][j] * Math.PI / 180)
                 x_hp[i][j] = cartCoords[0]
                 y_hp[i][j] = cartCoords[1]
                 z_hp[i][j] = cartCoords[2]
