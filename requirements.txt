@@ -1,0 +1,17 @@
+numpy = 1.24.3
+pandas = 2.0.1
+astropy = 5.2.2
+healpy = 1.16.2
+libtiff = 4.4.0
+bokeh = 2.4.3
+panel = 0.14.0
+pytest = 7.3.1
+jupyter = 1.0.0
+nbconvert = 7.4.9
+selenium = 4.9.1
+firefox 
+geckodriver = 0.33.0
+black = 22.6.0
+pytest-black = 0.3.12
+flake8 = 4.0.1
+pytest-flake8 = 1.1.1
