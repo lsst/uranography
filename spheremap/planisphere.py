@@ -1,3 +1,6 @@
+"""Interactive planisphere (Lambert Azimuthal Equal Area projection)."""
+
+
 import healpy as hp
 import numpy as np
 from .spheremap import SphereMap
@@ -60,7 +63,7 @@ class Planisphere(SphereMap):
         )
         return limit
 
-    def _add_projection_columns(self, hpix, nside):
+    def _add_projection_columns(self, hpix, nside, projector=None):
         """Adds pre-calculated projection columns for this projection."""
         proj = hp.projector.AzimuthalProj(rot=self.laea_rot, lamb=True)
         proj.set_flip("astro")

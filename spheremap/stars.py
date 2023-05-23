@@ -1,3 +1,5 @@
+"""Load the Yale Bright Star catalog into a pandas.DataFrame."""
+
 from collections import OrderedDict
 import os
 import pandas as pd
@@ -41,14 +43,21 @@ def load_bright_stars(fname=None):
 
     compression = "gzip" if fname.endswith(".gz") else "infer"
 
-    bs = pd.read_fwf(
+    bright_stars = pd.read_fwf(
         fname,
         colspecs=[ybs_columns[k] for k in ybs_columns],
         names=[k for k in ybs_columns],
         compression=compression,
     )
-    bs["ra"] = (360 / 24) * (bs.RA_hour + (bs.RA_min + bs.RA_sec / 60.0) / 60.0)
-    bs["decl"] = bs.decl_deg + (bs.decl_min + bs.decl_sec / 60.0) / 60.0
-    southern_stars = bs.decl_sign == "-"
-    bs.loc[southern_stars, "decl"] = -1 * bs.loc[southern_stars, "decl"]
-    return bs
+    bright_stars["ra"] = (360 / 24) * (
+        bright_stars.RA_hour + (bright_stars.RA_min + bright_stars.RA_sec / 60.0) / 60.0
+    )
+    bright_stars["decl"] = (
+        bright_stars.decl_deg
+        + (bright_stars.decl_min + bright_stars.decl_sec / 60.0) / 60.0
+    )
+    southern_stars = bright_stars.decl_sign == "-"
+    bright_stars.loc[southern_stars, "decl"] = (
+        -1 * bright_stars.loc[southern_stars, "decl"]
+    )
+    return bright_stars

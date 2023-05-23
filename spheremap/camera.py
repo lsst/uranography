@@ -1,3 +1,5 @@
+"""Tool for computing an outline of a camera footprint."""
+
 import numpy as np
 import pandas as pd
 from astropy.coordinates import SkyCoord
@@ -33,7 +35,7 @@ class CameraFootprintPerimeter(object):
         if "r" not in self.vertices.columns:
             self.vertices["r"] = np.hypot(self.vertices.y, self.vertices.x)
 
-    def single_eq_vertices(self, ra, decl, rotation=0):
+    def single_eq_vertices(self, ra, decl, rotation=0):  # pylint: disable=C0103
         """Compute vertices for a single pair of equatorial coordinates
 
         Paremeters
@@ -61,11 +63,11 @@ class CameraFootprintPerimeter(object):
         eq_vertices = center.directional_offset_by(
             (self.vertices.angle + rotation) * u.deg, self.vertices.r * u.deg
         )
-        ra = eq_vertices.ra.deg
+        ra = eq_vertices.ra.deg  # pylint: disable=C0103
         decl = eq_vertices.dec.deg
         return ra, decl
 
-    def __call__(self, ra, decl, rotation=0):
+    def __call__(self, ra, decl, rotation=0):   # pylint: disable=C0103
         """Compute vertices for a single pair of equatorial coordinates
 
         Paremeters

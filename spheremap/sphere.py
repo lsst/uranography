@@ -1,7 +1,9 @@
+"""Utilities for spherical geometry."""
+
 import numpy as np
 
 
-def offset_sep_bear(ra, decl, sep, bearing, degrees=False):
+def offset_sep_bear(ra, decl, sep, bearing, degrees=False):  # pylint: disable=C0103
     """Calculate coordinates after an offset by a separation.
 
     Parameters
@@ -62,7 +64,7 @@ def offset_sep_bear(ra, decl, sep, bearing, degrees=False):
     return new_ra, new_decl
 
 
-def rotate_cart(ux, uy, uz, angle, x0, y0, z0):
+def rotate_cart(ux, uy, uz, angle, x0, y0, z0):  # pylint: disable=C0103
     """Rotate coordinates on a unit sphere around an axis
 
     Parameters
@@ -103,7 +105,7 @@ def rotate_cart(ux, uy, uz, angle, x0, y0, z0):
     rzx = uz * ux * ccosa - uy * sina
     rzy = uz * uy * ccosa + ux * sina
     rzz = cosa + uz * uz * ccosa
-    x = rxx * x0 + rxy * y0 + rxz * z0
-    y = ryx * x0 + ryy * y0 + ryz * z0
-    z = rzx * x0 + rzy * y0 + rzz * z0
+    x = rxx * x0 + rxy * y0 + rxz * z0  # pylint: disable=C0103
+    y = ryx * x0 + ryy * y0 + ryz * z0  # pylint: disable=C0103
+    z = rzx * x0 + rzy * y0 + rzz * z0  # pylint: disable=C0103
     return x, y, z

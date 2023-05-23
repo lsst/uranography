@@ -1,3 +1,5 @@
+"""Interactive sky map in a Mollweide projection."""
+
 import numpy as np
 import healpy as hp
 from .spheremap import SphereMap
@@ -24,7 +26,7 @@ class MollweideMap(SphereMap):
     transform_js_call = "return mollweideTransform()"
     default_title = "Mollweide"
 
-    def _add_projection_columns(self, hpix, nside):
+    def _add_projection_columns(self, hpix, nside, projector=None):
         """Adds pre-calculated projection columns for this projection."""
         proj = hp.projector.MollweideProj()
         proj.set_flip("astro")
@@ -43,7 +45,7 @@ class MollweideMap(SphereMap):
 
             # If there are any x points with a different sign than the center,
             # set them to nan
-            for j, x in enumerate(hpix.data["x_moll"][i]):
+            for j, x in enumerate(hpix.data["x_moll"][i]):   # pylint: disable=C0103
                 center_ra_sign = 1 if center_ra % 360 < 180 else -1
                 # Remember, we are looking out from the Earth, so
                 # positive RA is left, negative right

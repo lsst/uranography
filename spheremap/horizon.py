@@ -1,3 +1,5 @@
+"""Interactive sky map in horizon (alt/az) coordinates."""
+
 import bokeh
 from .spheremap import MovingSphereMap
 
@@ -24,7 +26,7 @@ class HorizonMap(MovingSphereMap):
     proj_slider_keys = ["mjd"]
     default_title = "Horizon"
 
-    def _add_projection_columns(self, hpix, nside):
+    def _add_projection_columns(self, hpix, nside=None, projector=None):
         """Adds pre-calculated projection columns for this projection."""
         coord_cols = ["ra", "decl"]
         n_hpix = len(hpix.data["ra"])
@@ -75,8 +77,8 @@ class HorizonMap(MovingSphereMap):
             except KeyError:
                 pass
 
-    def add_sliders(self, center_alt=90, center_az=0):
-        """Add (already defined) sliders to the map."""
+    def add_sliders(self):
+        """Add sliders to the map."""
         super().add_sliders()
         self.sliders["mjd"] = bokeh.models.Slider(
             start=self.mjd - 1,
