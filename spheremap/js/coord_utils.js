@@ -29,7 +29,22 @@ function horizonToEq(lat, alt, az, lst) {
     return coords
 }
 
-const data = data_source.data
+let data = {}
+try {
+    data = data_source.data
+} catch(e) {
+    console.log("****************HERE!*****************")
+    // If we were not passed a data_source with data, assume we were 
+    // passed a column of coordinate pairs to transform, and build our
+    // data from that.
+    data['ra'] = new Array(xs.length)
+    data['decl'] = new Array(xs.length)
+    for(let i=0; i<xs.length; i++) {
+        data['ra'][i] = xs[i][0]
+        data['decl'][i] = xs[i][1]
+    }
+}
+
 const mjd = mjd_slider.value
 
 lat = lat * Math.PI / 180

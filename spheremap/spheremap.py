@@ -161,7 +161,7 @@ class SphereMap:
         )
         return js_code
 
-    def proj_transform(self, proj_coord, data_source):
+    def proj_transform(self, proj_coord, data_source=None, column_name=None):
         """Return a bokeh projection transformer.
 
         Parameters
@@ -170,7 +170,12 @@ class SphereMap:
             'x' or 'y', the projection coodinate to compute
         data_source : `bokeh.models.ColumnDataSource`
             The data source to project. Must have either 'ra' and 'decl'
-            columns, or 'alt' and 'az'. All in degrees.
+            columns, or 'alt' and 'az'. All in degrees. Defaults to None,
+            in which case the transform takes a column of ra, decl pairs.
+        column_name : `str`
+            The name of the column with ra, decl pairs. If None, columns
+            with 'ra' and 'decl' or 'alt' and 'az' names instead. Defaults
+            to None.
 
         Returns
         -------
@@ -208,11 +213,46 @@ class SphereMap:
             v_func=js_code,
         )
 
-        for column_name in ("ra", "alt"):
-            if column_name in data_source.data:
-                break
+        if column_name is None:
+            for column_name in ("ra", "alt"):
+                if column_name in data_source.data:
+                    break
 
         coord_transform = bokeh.transform.transform(column_name, js_transform)
+        return coord_transform
+
+    def x_transform(self, column_name):
+        """Return a bokeh projection transformer for x
+
+        Parameters
+        ----------
+        column_name : `str`
+            The name of the column with ra, decl pairs
+
+        Returns
+        -------
+        transform : `dict`
+            With keys `field` and `transform`, suitable for passing to
+            bokeh plotting functions.
+        """
+        coord_transform = self.proj_transform("x", column_name=column_name)
+        return coord_transform
+
+    def y_transform(self, column_name):
+        """Return a bokeh projection transformer for y
+
+        Parameters
+        ----------
+        column_name : `str`
+            The name of the column with ra, decl pairs
+
+        Returns
+        -------
+        transform : `dict`
+            With keys `field` and `transform`, suitable for passing to
+            bokeh plotting functions.
+        """
+        coord_transform = self.proj_transform("y", column_name=column_name)
         return coord_transform
 
     def eq_to_horizon(self, ra, decl, degrees=True, cart=True):
