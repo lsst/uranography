@@ -110,7 +110,7 @@ class TestSphereMap(unittest.TestCase):
 
         test_map = SphereMap(mjd=TEST_MJD, location="Cerro Pachon")
 
-        data_source = test_map.make_healpix_data_source(hpvalues, nside=nside)
+        data_source = test_map._make_healpix_data_source(hpvalues, nside=nside)
         self.assertIsInstance(data_source, bokeh.models.ColumnDataSource)
 
         self.assertEqual(len(data_source.data["value"]), npix - 1)
@@ -118,19 +118,19 @@ class TestSphereMap(unittest.TestCase):
 
     def test_make_graticule_points(self):
         test_map = SphereMap(mjd=TEST_MJD)
-        graticule_points = test_map.make_graticule_points()
+        graticule_points = test_map._make_graticule_points()
         self.assertIsInstance(graticule_points, bokeh.models.ColumnDataSource)
 
     def test_make_horizon_graticule_points(self):
         test_map = SphereMap(mjd=TEST_MJD)
-        graticule_points = test_map.make_horizon_graticule_points()
+        graticule_points = test_map._make_horizon_graticule_points()
         self.assertIsInstance(graticule_points, bokeh.models.ColumnDataSource)
 
     def test_make_circle_points(self):
         test_map = SphereMap(mjd=TEST_MJD)
         test_ra, test_decl = 12.3, -2.2
         test_radius = 5
-        circle_points = test_map.make_circle_points(test_ra, test_decl, test_radius)
+        circle_points = test_map._make_circle_points(test_ra, test_decl, test_radius)
         self.assertIsInstance(circle_points, bokeh.models.ColumnDataSource)
 
         center = SkyCoord(test_ra * u.deg, test_decl * u.deg, frame="icrs")
@@ -145,7 +145,7 @@ class TestSphereMap(unittest.TestCase):
         test_map = SphereMap(mjd=TEST_MJD)
         test_alt, test_az = 88.0, -2.2
         test_radius = 65.0
-        circle_points = test_map.make_horizon_circle_points(
+        circle_points = test_map._make_horizon_circle_points(
             test_alt, test_az, test_radius
         )
         self.assertIsInstance(circle_points, bokeh.models.ColumnDataSource)
@@ -154,24 +154,24 @@ class TestSphereMap(unittest.TestCase):
         test_map = SphereMap(mjd=TEST_MJD)
         stars = deepcopy(TEST_STARS)
 
-        test_map.make_points(pd.DataFrame(stars))
+        test_map._make_points(pd.DataFrame(stars))
 
-        points = test_map.make_points(stars)
+        points = test_map._make_points(stars)
         self.assertTrue("glyph_size" in points.data)
 
         del stars["name"]
-        points = test_map.make_points(stars)
+        points = test_map._make_points(stars)
         self.assertTrue("name" in points.data)
 
         stars["foo"] = np.arange(len(stars["ra"]))
         stars["bar"] = np.arange(len(stars["ra"]))
-        points = test_map.make_points(stars)
+        points = test_map._make_points(stars)
         self.assertTrue("foo" in points.data)
         self.assertTrue("bar" in points.data)
 
     def test_make_marker_data_source(self):
         test_map = SphereMap(mjd=TEST_MJD)
-        ds = test_map.make_marker_data_source(
+        ds = test_map._make_marker_data_source(
             ra=TEST_STARS["ra"], decl=TEST_STARS["decl"], name=TEST_STARS["name"]
         )
         self.assertIsInstance(ds, bokeh.models.ColumnDataSource)
@@ -259,7 +259,7 @@ class TestSphereMap(unittest.TestCase):
         }
 
         test_map = SphereMap(mjd=TEST_MJD)
-        patch_ds = test_map.make_patches_data_source(patch_data)
+        patch_ds = test_map._make_patches_data_source(patch_data)
 
         self.assertTrue("foo" in patch_ds.data)
 

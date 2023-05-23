@@ -313,7 +313,7 @@ class SphereMap:
             az = horizon_coords.az.rad
             return alt, az
 
-    def make_healpix_data_source(self, hpvalues, nside=32, bound_step=1, nest=False):
+    def _make_healpix_data_source(self, hpvalues, nside=32, bound_step=1, nest=False):
         """Make a data source of healpix values, corners, and projected coords.
 
         Parameters
@@ -387,7 +387,7 @@ class SphereMap:
         # will not be created.
         self._add_projection_columns(hpix, nside)
 
-        self._finish_data_source(hpix)
+        self.connect_controls(hpix)
 
         return hpix
 
@@ -428,7 +428,7 @@ class SphereMap:
 
         return hpix
 
-    def make_graticule_points(
+    def _make_graticule_points(
         self,
         min_decl=-80,
         max_decl=80,
@@ -510,10 +510,10 @@ class SphereMap:
 
         graticule_points = bokeh.models.ColumnDataSource(pd.concat(graticule_list))
 
-        self._finish_data_source(graticule_points)
+        self.connect_controls(graticule_points)
         return graticule_points
 
-    def make_horizon_graticule_points(
+    def _make_horizon_graticule_points(
         self,
         min_alt=0,
         max_alt=80,
@@ -573,7 +573,7 @@ class SphereMap:
             start_bear = 0
             end_bear = 360 + step
             this_graticule = pd.DataFrame(
-                self.make_horizon_circle_points(
+                self._make_horizon_circle_points(
                     90, 0, radius, start_bear, end_bear, step
                 ).data
             )
@@ -585,7 +585,7 @@ class SphereMap:
         for az in np.arange(min_az, max_az + step, az_space):
             radius = 90
             this_graticule = pd.DataFrame(
-                self.make_horizon_circle_points(
+                self._make_horizon_circle_points(
                     0, az + 90, radius, 0, 360 + step, step
                 ).data
             )
@@ -600,10 +600,10 @@ class SphereMap:
             graticule_list.append(stop_df)
 
         graticule_points = bokeh.models.ColumnDataSource(pd.concat(graticule_list))
-        self._finish_data_source(graticule_points)
+        self.connect_controls(graticule_points)
         return graticule_points
 
-    def make_circle_points(
+    def _make_circle_points(
         self,
         center_ra,
         center_decl,
@@ -654,10 +654,10 @@ class SphereMap:
             }
         )
 
-        self._finish_data_source(circle)
+        self.connect_controls(circle)
         return circle
 
-    def make_horizon_circle_points(
+    def _make_horizon_circle_points(
         self, alt=ALMOST_90, az=0, radius=90.0, start_bear=0, end_bear=360, step=1
     ):
         """Define points in a circle with the center defined in horizon coords.
@@ -694,7 +694,7 @@ class SphereMap:
         center_ra = center.ra.deg
         center_decl = center.dec.deg
 
-        eq_circle_points = self.make_circle_points(
+        eq_circle_points = self._make_circle_points(
             center_ra, center_decl, radius, start_bear, end_bear, step
         )
         ra = np.array(eq_circle_points.data["ra"])
@@ -709,7 +709,7 @@ class SphereMap:
 
         return circle
 
-    def make_points(self, points_data):
+    def _make_points(self, points_data):
         """Create a bokeh data source with locations of points on a sphere.
 
         Parameters
@@ -755,10 +755,10 @@ class SphereMap:
 
         points = bokeh.models.ColumnDataSource(data=data)
 
-        self._finish_data_source(points)
+        self.connect_controls(points)
         return points
 
-    def make_marker_data_source(
+    def _make_marker_data_source(
         self,
         ra=None,
         decl=None,
@@ -839,9 +839,9 @@ class SphereMap:
                 if self.mjd > this_max_mjd:
                     data["in_mjd_window"][marker_index] = 0
 
-        data_source = self.make_points(data)
+        data_source = self._make_points(data)
 
-        self._finish_data_source(data_source)
+        self.connect_controls(data_source)
         return data_source
 
     def add_sliders(self):
@@ -978,7 +978,7 @@ class SphereMap:
         if isinstance(data, bokeh.models.DataSource):
             data_source = data
         else:
-            data_source = self.make_healpix_data_source(data, nside, bound_step)
+            data_source = self._make_healpix_data_source(data, nside, bound_step)
 
         self._add_projection_columns(data_source, nside)
 
@@ -1021,7 +1021,7 @@ class SphereMap:
         graticules : ` `bokeh.models.ColumnDataSource`
             The bokeh data source with points defining the graticules.
         """
-        graticule_points = self.make_graticule_points(**graticule_kwargs)
+        graticule_points = self._make_graticule_points(**graticule_kwargs)
         kwargs = deepcopy(self.default_graticule_line_kwargs)
         kwargs.update(line_kwargs)
         self.plot.line(
@@ -1049,7 +1049,7 @@ class SphereMap:
         graticules : ` `bokeh.models.ColumnDataSource`
             The bokeh data source with points defining the graticules.
         """
-        graticule_points = self.make_horizon_graticule_points(**graticule_kwargs)
+        graticule_points = self._make_horizon_graticule_points(**graticule_kwargs)
         kwargs = deepcopy(self.default_graticule_line_kwargs)
         kwargs.update(line_kwargs)
         self.plot.line(
@@ -1081,7 +1081,9 @@ class SphereMap:
         circle_points : `bokeh.models.ColumnDataSource`
             The bokeh data source with points defining the circle.
         """
-        circle_points = self.make_circle_points(center_ra, center_decl, **circle_kwargs)
+        circle_points = self._make_circle_points(
+            center_ra, center_decl, **circle_kwargs
+        )
         self.plot.line(
             x=self.proj_transform("x", circle_points),
             y=self.proj_transform("y", circle_points),
@@ -1116,7 +1118,7 @@ class SphereMap:
             The bokeh data source with points defining the circle.
         """
         if data_source is None:
-            circle_points = self.make_horizon_circle_points(
+            circle_points = self._make_horizon_circle_points(
                 90, 0, radius=zd, **circle_kwargs
             )
             if "mjd" in self.sliders:
@@ -1174,7 +1176,7 @@ class SphereMap:
             A data source with marker locations, including projected coords.
         """
         if data_source is None:
-            data_source = self.make_marker_data_source(
+            data_source = self._make_marker_data_source(
                 ra, decl, name, glyph_size, min_mjd, max_mjd
             )
 
@@ -1188,7 +1190,7 @@ class SphereMap:
 
         return data_source
 
-    def make_patches_data_source(self, patches_data):
+    def _make_patches_data_source(self, patches_data):
         """Create a bokeh data source with locations of points on a sphere.
 
         All patches must have the same number of vertices.
@@ -1230,7 +1232,7 @@ class SphereMap:
 
         points = bokeh.models.ColumnDataSource(data=data)
 
-        self._finish_data_source(points)
+        self.connect_controls(points)
         return points
 
     def add_patches(
@@ -1267,7 +1269,7 @@ class SphereMap:
             A data source with marker locations, including projected coords.
         """
         if data_source is None:
-            data_source = self.make_patches_data_source(patches_data)
+            data_source = self._make_patches_data_source(patches_data)
 
         self.plot.patches(
             xs=self.proj_transform("x", data_source),
@@ -1310,7 +1312,7 @@ class SphereMap:
         """
         self.star_data = pd.DataFrame(points_data)
         if data_source is None:
-            self.star_data_source = self.make_points(self.star_data)
+            self.star_data_source = self._make_points(self.star_data)
         else:
             self.star_data_source = data_source
 
@@ -1358,7 +1360,7 @@ class SphereMap:
             self.max_star_glyph_size
             - (self.max_star_glyph_size / mag_limit) * star_data["Vmag"]
         )
-        stars = self.make_points(star_data)
+        stars = self._make_points(star_data)
         self.star_data_source.data = dict(stars.data)
 
     def add_ecliptic(self, **kwargs):
@@ -1401,12 +1403,28 @@ class SphereMap:
         self.add_ecliptic()
         self.add_galactic_plane()
 
-    def _finish_data_source(self, data_source):
+    def connect_controls(self, data_source):
+        """Connect map controls to a data source so it updates.
+
+        Parameters
+        ----------
+        data_source : `Bokeh.models.DataSource`
+            A data source that needs to update automatically in response
+            to changes to the map controls.
+        """
         pass
 
 
 class MovingSphereMap(SphereMap):
-    def _finish_data_source(self, data_source):
+    def connect_controls(self, data_source):
+        """Connect map controls to a data source so it updates.
+
+        Parameters
+        ----------
+        data_source : `Bokeh.models.DataSource`
+            A data source that needs to update automatically in response
+            to changes to the map controls.
+        """
         if self.x_col in data_source.data:
             self.set_js_update_func(data_source)
         else:

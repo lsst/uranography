@@ -54,7 +54,7 @@ class TestArmillarySphere(unittest.TestCase):
         hpvalues = RNG.random(hp.nside2npix(nside))
 
         # make_healpix_data_source calls _add_projection_columns
-        data_source = test_map.make_healpix_data_source(hpvalues, nside=nside)
+        data_source = test_map._make_healpix_data_source(hpvalues, nside=nside)
         self.assertIsInstance(data_source, bokeh.models.ColumnDataSource)
 
     def test_set_js_update_func(self):
