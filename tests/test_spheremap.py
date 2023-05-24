@@ -291,7 +291,8 @@ class TestSphereMap(unittest.TestCase):
         mag_limit = -0.5
         test_map.limit_stars(1, 99, mag_limit)
 
-        for mag in test_map.star_data_source.data["Vmag"]:
+        star_data_source = test_map.plot.select(name="bright_star_ds")
+        for mag in star_data_source.data["Vmag"]:
             self.assertTrue(mag < mag_limit)
 
     def test_add_ecliptic(self):

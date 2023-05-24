@@ -4,6 +4,7 @@
 from collections import OrderedDict, namedtuple
 from collections.abc import Iterable
 from copy import deepcopy
+from warnings import warn
 import uuid
 import time
 
@@ -93,12 +94,7 @@ class SphereMap:
         self._viewable = None
         self._figure = None
         self.notebook_handle = None
-        self.healpix_data = None
-        self.healpix_cmap = None
-        self.healpix_glyph = None
-        self.healpix_renderer = None
         self.star_data = None
-        self.star_data_source = None
         self.plot.axis.visible = False
         self.plot.grid.visible = False
 
@@ -108,6 +104,51 @@ class SphereMap:
             text=str(time.time_ns()), name="update_time", visible=False
         )
         self.add_sliders()
+
+    @property
+    def healpix_data(self):
+        """The healpix data source (deprecated!)"""
+        warn('Use self.plot.select(name="hpix_ds") instead', DeprecationWarning)
+        data_source = self.plot.select(name="hpix_ds")
+        return data_source
+
+    @property
+    def healpix_renderer(self):
+        """The healpix renderers (deprecated!)"""
+        warn('Use self.plot.select(name="hpix_renderer") instead', DeprecationWarning)
+        renderer = self.plot.select(name="hpix_renderer")
+        return renderer
+
+    @property
+    def healpix_glyph(self):
+        """The healpix data source (deprecated!)"""
+        warn(
+            'Use self.plot.select(name="hpix_renderer").glyph instead',
+            DeprecationWarning,
+        )
+        renderers = self.plot.select(name="hpix_renderer")
+        try:
+            glyph = renderers.glyph
+        except AttributeError:
+            glyph = [r.glyph for r in renderers]
+        return glyph
+
+    @property
+    def star_data_source(self):
+        """Return the star data source (deprecated)."""
+        warn(
+            'Use self.plot.select(name="bright_star_ds") instead',
+            DeprecationWarning,
+        )
+        star_data = self.plot.select(name="bright_star_ds")
+        return star_data
+
+    @property
+    def healpix_cmap(self):
+        """Return the bokeh color map dict used for bokeh."""
+        cmap_transform = self.plot.select(name="hpix_color_transform")
+        cmap = {"field": "value", "transform": cmap_transform}
+        return cmap
 
     @property
     def figure(self):
@@ -1004,7 +1045,7 @@ class SphereMap:
         nside=16,
         bound_step=1,
         ds_name="hpix_ds",
-        name="hpix_glyph",
+        name="hpix_renderer",
     ):
         """Add healpix values to the map
 
@@ -1057,12 +1098,10 @@ class SphereMap:
 
         self._add_projection_columns(data_source, nside)
 
-        self.healpix_data = data_source
-
         if cmap is None:
-            cmap = make_zscale_linear_cmap(data_source.data["value"])
-
-        self.healpix_cmap = cmap
+            cmap = make_zscale_linear_cmap(
+                data_source.data["value"], cmap_name="hpix_color_transform"
+            )
 
         hpgr = self.plot.patches(
             xs=self.x_col,
@@ -1072,9 +1111,6 @@ class SphereMap:
             source=data_source,
             name=name,
         )
-
-        self.healpix_glyph = hpgr.glyph
-        self.healpix_renderer = hpgr
 
         hp_glyph = hpgr.glyph
 
@@ -1437,15 +1473,17 @@ class SphereMap:
 
         self.star_data = pd.DataFrame(points_data)
         if data_source is None:
-            self.star_data_source = self._make_points(self.star_data)
+            star_data_source = self._make_points(
+                self.star_data, ds_name="bright_star_ds"
+            )
         else:
-            self.star_data_source = data_source
+            star_data_source = data_source
 
         self.plot.star(
-            x=self.proj_transform("x", self.star_data_source),
-            y=self.proj_transform("y", self.star_data_source),
+            x=self.proj_transform("x", star_data_source),
+            y=self.proj_transform("y", star_data_source),
             size="glyph_size",
-            source=self.star_data_source,
+            source=star_data_source,
             **star_kwargs,
         )
 
@@ -1463,7 +1501,7 @@ class SphereMap:
             self.sliders["mag_limit"] = mag_slider
             self.visible_slider_names.append("mag_limit")
 
-        return self.star_data_source
+        return star_data_source
 
     def limit_stars(self, attr, old_limit, mag_limit):  # pylint: disable=W0613
         """Apply a magnitude limit to mapped stars
@@ -1487,7 +1525,8 @@ class SphereMap:
             - (self.max_star_glyph_size / mag_limit) * star_data["Vmag"]
         )
         stars = self._make_points(star_data)
-        self.star_data_source.data = dict(stars.data)
+        star_data_source = self.plot.select(name="bright_star_ds")
+        star_data_source.data = dict(stars.data)
 
     def add_ecliptic(self, **kwargs):
         """Map the ecliptic.
@@ -1558,7 +1597,9 @@ class MovingSphereMap(SphereMap):
             self.set_emit_update_func(data_source)
 
 
-def make_zscale_linear_cmap(values, field_name="value", palette="Inferno256", **kwargs):
+def make_zscale_linear_cmap(
+    values, field_name="value", palette="Inferno256", cmap_name=None, **kwargs
+):
     """Automatic linear scaling for images.
 
     Parameters
@@ -1583,6 +1624,8 @@ def make_zscale_linear_cmap(values, field_name="value", palette="Inferno256", **
     cmap = bokeh.transform.linear_cmap(
         field_name, palette, scale_limits[0], scale_limits[1]
     )
+    cmap["transform"].name = cmap_name
+
     return cmap
 
 
