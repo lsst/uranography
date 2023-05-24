@@ -25,7 +25,7 @@ def read_javascript(fname):
     try:
         js_path = importlib.resources.files(root_package).joinpath("js").joinpath(fname)
         with importlib.resources.as_file(js_path) as js_file_path:
-            with open(js_file_path, "r", encoding='UTF-8') as js_io:
+            with open(js_file_path, "r", encoding="UTF-8") as js_io:
                 js_code = js_io.read()
     except AttributeError as e:  # pylint: disable=C0103
         # If we are using an older version of importlib, we need to do
@@ -35,7 +35,7 @@ def read_javascript(fname):
 
         with importlib.resources.path(root_package, ".") as root_path:
             full_name = root_path.joinpath("js").joinpath(fname)
-            with open(full_name, "r", encoding='UTF-8') as js_io:
+            with open(full_name, "r", encoding="UTF-8") as js_io:
                 js_code = js_io.read()
 
     return js_code

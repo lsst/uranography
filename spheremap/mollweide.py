@@ -45,7 +45,7 @@ class MollweideMap(SphereMap):
 
             # If there are any x points with a different sign than the center,
             # set them to nan
-            for j, x in enumerate(hpix.data["x_moll"][i]):   # pylint: disable=C0103
+            for j, x in enumerate(hpix.data["x_moll"][i]):  # pylint: disable=C0103
                 center_ra_sign = 1 if center_ra % 360 < 180 else -1
                 # Remember, we are looking out from the Earth, so
                 # positive RA is left, negative right

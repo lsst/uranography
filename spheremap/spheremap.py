@@ -60,10 +60,17 @@ class SphereMap:
     default_title = ""
     x_col = "x_hp"
     y_col = "y_hp"
-    default_graticule_line_kwargs = {"color": "darkgray"}
-    default_ecliptic_line_kwargs = {"color": "green"}
-    default_galactic_plane_line_kwargs = {"color": "blue"}
-    default_horizon_line_kwargs = {"color": "black", "line_width": 6}
+    default_graticule_line_kwargs = {"color": "darkgray", "name": "graticule_glyph"}
+    default_ecliptic_line_kwargs = {"color": "green", "name": "ecliptic_glyph"}
+    default_galactic_plane_line_kwargs = {
+        "color": "blue",
+        "name": "galactic_plane_glyph",
+    }
+    default_horizon_line_kwargs = {
+        "color": "black",
+        "line_width": 6,
+        "name": "horizon_glyph",
+    }
 
     def __init__(self, plot=None, mjd=None, location="Cerro Pachon"):
         self.mjd = Time.now().mjd if mjd is None else mjd
@@ -331,7 +338,9 @@ class SphereMap:
             az = horizon_coords.az.rad  # pylint: disable=C0103
             return alt, az
 
-    def _make_healpix_data_source(self, hpvalues, nside=32, bound_step=1, nest=False):
+    def _make_healpix_data_source(
+        self, hpvalues, nside=32, bound_step=1, nest=False, name="hpix_ds"
+    ):
         """Make a data source of healpix values, corners, and projected coords.
 
         Parameters
@@ -347,6 +356,8 @@ class SphereMap:
         nest : `bool`, optionol
             Is the healpix array provided in NEST ordering? Defaults to False.
             (if hpvalues is a HealSparseMap, nest is always True)
+        name : `str`, option
+            The bokeh name for the data source model, defaults to `hpix_ds`
 
         Returns
         -------
@@ -398,7 +409,8 @@ class SphereMap:
                 "z_hp": hpix_bounds_vec[:, 2, :].tolist(),
                 "ra": ra.reshape(npix, 4 * bound_step).tolist(),
                 "decl": decl.reshape(npix, 4 * bound_step).tolist(),
-            }
+            },
+            name=name,
         )
 
         # adding the projection column must come before
@@ -459,6 +471,7 @@ class SphereMap:
         max_ra=360,
         ra_space=30,
         step=1,
+        name="eq_graticule_ds",
     ):
         """Create points that define graticules
 
@@ -482,6 +495,8 @@ class SphereMap:
             Spacing of R.A. graticules (deg), by default 30
         step : int, optional
             Spacing of points along graticules, by default 1
+        name : `str`
+            Name for the bokeh model, defaults to eq_graticule_ds.
 
         Returns
         -------
@@ -530,7 +545,9 @@ class SphereMap:
             graticule_list.append(this_graticule)
             graticule_list.append(stop_df)
 
-        graticule_points = bokeh.models.ColumnDataSource(pd.concat(graticule_list))
+        graticule_points = bokeh.models.ColumnDataSource(
+            pd.concat(graticule_list), name=name
+        )
 
         self.connect_controls(graticule_points)
         return graticule_points
@@ -544,6 +561,7 @@ class SphereMap:
         max_az=360,
         az_space=30,
         step=1,
+        name="hz_gratidule_ds",
     ):
         """Create points that define graticules
 
@@ -621,7 +639,9 @@ class SphereMap:
             graticule_list.append(this_graticule)
             graticule_list.append(stop_df)
 
-        graticule_points = bokeh.models.ColumnDataSource(pd.concat(graticule_list))
+        graticule_points = bokeh.models.ColumnDataSource(
+            pd.concat(graticule_list), name=name
+        )
         self.connect_controls(graticule_points)
         return graticule_points
 
@@ -633,6 +653,7 @@ class SphereMap:
         start_bear=0,
         end_bear=360,
         step=1,
+        name="circle",
     ):
         """Create points along a circle or arc on a sphere
 
@@ -650,6 +671,8 @@ class SphereMap:
             Bearing (E. of N.) of the end of the circle (deg.), by default 360
         step : int, optional
             Spacing of the points along the circle (deg.), by default 1
+        name : `str`, optional
+            Name for the bokeh model
 
         Returns
         -------
@@ -673,7 +696,8 @@ class SphereMap:
                 "bearing": bearings,
                 "ra": ras,
                 "decl": decls,
-            }
+            },
+            name=name,
         )
 
         self.connect_controls(circle)
@@ -687,6 +711,7 @@ class SphereMap:
         start_bear=0,
         end_bear=360,
         step=1,
+        name="horizon_ds",
     ):
         """Define points in a circle with the center defined in horizon coords.
 
@@ -704,6 +729,8 @@ class SphereMap:
             Bearing of the end of the circle (deg.), by default 360
         step : int, optional
             Spacing of points along the circle., by default 1
+        name : str, optional
+            Name for the bokeh model.
 
         Returns
         -------
@@ -733,11 +760,11 @@ class SphereMap:
         circle_data["alt"] = alt.tolist()
         circle_data["az"] = az.tolist()
 
-        circle = bokeh.models.ColumnDataSource(data=circle_data)
+        circle = bokeh.models.ColumnDataSource(data=circle_data, name=name)
 
         return circle
 
-    def _make_points(self, points_data):
+    def _make_points(self, points_data, ds_name="points_ds"):
         """Create a bokeh data source with locations of points on a sphere.
 
         Parameters
@@ -750,6 +777,8 @@ class SphereMap:
                 The Right Ascension in degrees.
             ``"decl"``
                 The declination in degrees.
+        ds_name : `str`, optional
+            Name for the bokeh model, defaults to points_ds
 
         Returns
         -------
@@ -781,7 +810,7 @@ class SphereMap:
             if column_name not in data:
                 data[column_name] = points_df[column_name].to_list()
 
-        points = bokeh.models.ColumnDataSource(data=data)
+        points = bokeh.models.ColumnDataSource(data=data, name=ds_name)
 
         self.connect_controls(points)
         return points
@@ -794,6 +823,7 @@ class SphereMap:
         glyph_size=5,
         min_mjd=None,
         max_mjd=None,
+        ds_name="marker_ds",
     ):
         """Add one or more circular marker(s) to the map.
 
@@ -811,6 +841,8 @@ class SphereMap:
             Earlist time for which to show the marker
         max_mjd : `float`
             Latest time for which to show the marker
+        ds_name : `str`, optional
+            Name for the bokeh data source, defaults to marker_ds.
 
         Returns
         -------
@@ -867,7 +899,7 @@ class SphereMap:
                 if self.mjd > this_max_mjd:
                     data["in_mjd_window"][marker_index] = 0
 
-        data_source = self._make_points(data)
+        data_source = self._make_points(data, ds_name=ds_name)
 
         self.connect_controls(data_source)
         return data_source
@@ -888,6 +920,7 @@ class SphereMap:
                 value=self.mjd,
                 step=1.0 / (24 * 12),
                 title="MJD",
+                name="mjd_slider",
             )
 
             self.visible_slider_names.append("mjd")
@@ -964,7 +997,15 @@ class SphereMap:
         display(self.viewable)
         self.update()
 
-    def add_healpix(self, data, cmap=None, nside=16, bound_step=1):
+    def add_healpix(
+        self,
+        data,
+        cmap=None,
+        nside=16,
+        bound_step=1,
+        ds_name="hpix_ds",
+        name="hpix_glyph",
+    ):
         """Add healpix values to the map
 
         Parameters
@@ -986,6 +1027,10 @@ class SphereMap:
         bound_step : `int`, optional
             number of boundary points for each side of each healpixel,
             by default 1
+        ds_name : `str`, optional
+            The bokeh name for the data source, defaults to hpix_ds.
+        name : `str`, optional
+            The bokeh name for the bokeh glyph, defaults ho hpix_glyph.
 
         Returns
         -------
@@ -1006,7 +1051,9 @@ class SphereMap:
         if isinstance(data, bokeh.models.DataSource):
             data_source = data
         else:
-            data_source = self._make_healpix_data_source(data, nside, bound_step)
+            data_source = self._make_healpix_data_source(
+                data, nside, bound_step, name=ds_name
+            )
 
         self._add_projection_columns(data_source, nside)
 
@@ -1023,6 +1070,7 @@ class SphereMap:
             fill_color=cmap,
             line_color=cmap,
             source=data_source,
+            name=name,
         )
 
         self.healpix_glyph = hpgr.glyph
@@ -1126,6 +1174,9 @@ class SphereMap:
 
         if line_kwargs is None:
             line_kwargs = {}
+
+        if "name" not in line_kwargs:
+            line_kwargs["name"] = "sphere_circle_glyph"
 
         circle_points = self._make_circle_points(
             center_ra, center_decl, **circle_kwargs
@@ -1234,6 +1285,9 @@ class SphereMap:
         if circle_kwargs is None:
             circle_kwargs = {}
 
+        if "name" not in circle_kwargs:
+            circle_kwargs["name"] = "circle_glyph"
+
         if data_source is None:
             data_source = self._make_marker_data_source(
                 ra, decl, name, glyph_size, min_mjd, max_mjd
@@ -1249,7 +1303,7 @@ class SphereMap:
 
         return data_source
 
-    def _make_patches_data_source(self, patches_data):
+    def _make_patches_data_source(self, patches_data, name=None):
         """Create a bokeh data source with locations of points on a sphere.
 
         All patches must have the same number of vertices.
@@ -1263,6 +1317,8 @@ class SphereMap:
                 The Right Ascension in degrees.
             ``"decl"``
                 The declination in degrees.
+        name : `str`, optional
+            The name for the bokeh model.
 
         Returns
         -------
@@ -1289,7 +1345,7 @@ class SphereMap:
             if column_name not in data:
                 data[column_name] = patches_df[column_name].to_list()
 
-        points = bokeh.models.ColumnDataSource(data=data)
+        points = bokeh.models.ColumnDataSource(data=data, name=name)
 
         self.connect_controls(points)
         return points
@@ -1376,6 +1432,9 @@ class SphereMap:
         if star_kwargs is None:
             star_kwargs = {}
 
+        if "name" not in star_kwargs:
+            star_kwargs["name"] = "stars_glyph"
+
         self.star_data = pd.DataFrame(points_data)
         if data_source is None:
             self.star_data_source = self._make_points(self.star_data)
@@ -1397,6 +1456,7 @@ class SphereMap:
                 value=3,
                 step=0.5,
                 title="Magnitude limit for bright stars",
+                name="mag_limit_slider",
             )
             mag_slider.on_change("value", self.limit_stars)
 

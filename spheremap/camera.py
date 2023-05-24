@@ -67,7 +67,7 @@ class CameraFootprintPerimeter(object):
         decl = eq_vertices.dec.deg
         return ra, decl
 
-    def __call__(self, ra, decl, rotation=0):   # pylint: disable=C0103
+    def __call__(self, ra, decl, rotation=0):  # pylint: disable=C0103
         """Compute vertices for a single pair of equatorial coordinates
 
         Paremeters
