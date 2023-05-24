@@ -1361,6 +1361,10 @@ class SphereMap:
         data_source : `bokeh.models.ColumnDataSource`
             A data source with patch coordinates.
         """
+        warn(
+            "Create the data source directly with bokeh.models.ColumnDataSource",
+            DeprecationWarning,
+        )
 
         patches_df = pd.DataFrame(patches_data)
         ra = np.stack(patches_df.ra.values)  # pylint: disable=C0103
@@ -1416,6 +1420,10 @@ class SphereMap:
         data_source : `bokeh.models.ColumnDataSource`
             A data source with marker locations, including projected coords.
         """
+        warn(
+            "Use self.plot.patches directly instead",
+            DeprecationWarning,
+        )
         if patches_kwargs is None:
             patches_kwargs = {}
 
