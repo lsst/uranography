@@ -8,7 +8,7 @@ Introduction
 ``bokeh`` plots of data on the celestial sphere. It is primarily intended for 
 use in interactive environments such as jupyter notebooks or dashboards. For
 instructions on using it in such envirenments, see the example notebook,
-`spheremap.ipynb`, in the `notebooks` directory of the repository.
+``spheremap.ipynb``, in the ``notebooks`` directory of the repository.
 
 The following examples show use in creation of non-interactive plots, saved
 as png files.
