@@ -959,7 +959,7 @@ class SphereMap:
                 start=self.mjd - 1,
                 end=self.mjd + 1,
                 value=self.mjd,
-                step=1.0 / (24 * 12),
+                step=0.25 / (24 * 12),
                 title="MJD",
                 name="mjd_slider",
             )
@@ -1626,7 +1626,17 @@ def make_zscale_linear_cmap(
     """
     zscale_interval = astropy.visualization.ZScaleInterval(**kwargs)
     if np.any(np.isfinite(values)):
-        scale_limits = zscale_interval.get_limits(values)
+        if len(np.unique(values)) == 1:
+            value = np.nanmax(values)
+            if value == 0.0:
+                scale_limits = [-1.0, 0.1]
+            else:
+                scale_limits = [0.0, value * 1.1]
+        if len(np.unique(values)) == 2:
+            padding = (np.nanmax(values) - np.nanmin(values)) * 0.1
+            scale_limits = [np.nanmin(values) - padding, np.nanmax(values) + padding]
+        else:
+            scale_limits = zscale_interval.get_limits(values)
     else:
         scale_limits = [0, 1]
     cmap = bokeh.transform.linear_cmap(
