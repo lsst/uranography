@@ -63,4 +63,13 @@ Install the kernel from the new jupyter environment:
 python -m ipykernel install --user --name=spheremap
 ```
 
-Then, open `spheremap/notebooks/spheremap.ipynb` in `jupyter` and follow the tutorial there.
+To make the documentation:
+
+```
+cd docs
+make html
+```
+
+The root of the refenece documentation will then be `docs/_build/html/source/index.html`.
+
+For tutorial documentation, follow the tutorial in `spheremap/notebooks/spheremap.ipynb` in `jupyter`.
