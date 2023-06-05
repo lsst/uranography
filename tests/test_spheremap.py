@@ -19,7 +19,7 @@ NUM_POINTS = 10
 
 class TestSphereMap(unittest.TestCase):
     def test_init(self):
-        SphereMap(plot=bokeh.plotting.Figure())
+        SphereMap(plot=bokeh.plotting.figure())
         SphereMap(mjd=TEST_MJD)
         SphereMap(location="APO")
         SphereMap(location=EarthLocation.of_site("CTIO"))

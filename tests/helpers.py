@@ -42,10 +42,10 @@ def exercise_map_class(MapClass):
     stars = pd.DataFrame(TEST_STARS)
     test_map.add_stars(stars)
 
-    with TemporaryDirectory() as dir:
-        out_path = Path(dir)
-        png_fname = out_path.joinpath("planisphere.png")
-        bokeh.io.export_png(test_map.plot, filename=png_fname)
+    with TemporaryDirectory() as test_dir:
+        out_path = Path(test_dir)
+        png_fname = out_path.joinpath("test_plot.png")
+        bokeh.io.export_png(test_map.figure, filename=png_fname)
 
 
 def make_simple_map(cls):
