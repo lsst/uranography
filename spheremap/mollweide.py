@@ -10,7 +10,7 @@ class MollweideMap(SphereMap):
 
     Parameters
     ----------
-    plot : `bokeh.plotting.figure.Figure`, optional
+    plot : `bokeh.plotting.figure`, optional
         Figure to which to add the map, by default None
     mjd : `float`, optional
         The Modified Julian Date

@@ -43,7 +43,7 @@ class SphereMap:
 
     Parameters
     ----------
-    plot : `bokeh.plotting.figure.Figure`, optional
+    plot : `bokeh.plotting._figure.figure`, optional
         Figure to which to add the map, by default None
     mjd : `float`, optional
         The Modified Julian Date
@@ -83,8 +83,8 @@ class SphereMap:
 
         if plot is None:
             self.plot = bokeh.plotting.figure(
-                plot_width=512,
-                plot_height=512,
+                frame_width=512,
+                frame_height=512,
                 match_aspect=True,
                 title=self.default_title,
             )
@@ -1125,7 +1125,7 @@ class SphereMap:
             Keywords to be passed to ``SphereMap.make_graticule_points``,
             by default {}
         line_kwargs : dict, optional
-            Keywords to be passed to ``bokeh.plotting.figure.Figure.line``,
+            Keywords to be passed to ``bokeh.plotting.figure.line``,
             by default {}
 
         Returns
@@ -1159,7 +1159,7 @@ class SphereMap:
             Keywords to be passed to ``SphereMap.make_graticule_points``,
             by default {}
         line_kwargs : dict, optional
-            Keywords to be passed to ``bokeh.plotting.figure.Figure.line``,
+            Keywords to be passed to ``bokeh.plotting.figure.line``,
             by default {}
 
         Returns
@@ -1197,7 +1197,7 @@ class SphereMap:
             Keywords to be passed to ``SphereMap.make_circle_points``,
             by default {}
         line_kwargs : dict, optional
-            Keywords to be passed to ``bokeh.plotting.figure.Figure.line``,
+            Keywords to be passed to ``bokeh.plotting.figure.line``,
             by default {}
 
         Returns
@@ -1246,7 +1246,7 @@ class SphereMap:
             Keywords to be passed to ``SphereMap.make_circle_points``,
             by default {}
         line_kwargs : dict, optional
-            Keywords to be passed to ``bokeh.plotting.figure.Figure.line``,
+            Keywords to be passed to ``bokeh.plotting.figure.line``,
             by default {}
 
         Returns
@@ -1310,7 +1310,7 @@ class SphereMap:
             Data source for the marker, None if a new one is to be generated.
             By default, None
         circle_kwargs : dict, optional
-            Keywords to be passed to ``bokeh.plotting.figure.Figure.circle``,
+            Keywords to be passed to ``bokeh.plotting.figure.circle``,
             by default {}
 
         Returns
@@ -1412,7 +1412,7 @@ class SphereMap:
             Data source for the marker, None if a new one is to be generated.
             By default, None
         patches_kwargs : dict, optional
-            Keywords to be passed to ``bokeh.plotting.figure.Figure.circle``,
+            Keywords to be passed to ``bokeh.plotting.figure.circle``,
             by default {}
 
         Returns
