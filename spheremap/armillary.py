@@ -1,7 +1,9 @@
 """Interactive sky map that works like an armillary sphere.
 """
 import numpy as np
+import panel as pn
 import bokeh
+from IPython.display import display
 
 from .spheremap import MovingSphereMap
 from .sphere import rotate_cart
@@ -181,3 +183,17 @@ class ArmillarySphere(MovingSphereMap):
         self.visible_slider_names.append("alt")
         self.visible_slider_names.append("az")
         self.visible_slider_names.append("mjd")
+
+    def notebook_display(self):
+        """Use panel to show the figure in within a notebook."""
+        template = pn.Template(
+            """
+                {% extends base %}
+                {% block postamble %}
+                <script src="https://unpkg.com/gpu.js@latest/dist/gpu-browser.min.js"></script>
+                {% endblock %}
+            """
+        )
+        template.add_panel("main", self.viewable)
+        display(template)
+        self.update()
