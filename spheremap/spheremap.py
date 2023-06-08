@@ -93,6 +93,7 @@ class SphereMap:
 
         self._viewable = None
         self._figure = None
+        self._hpix_cmap = None
         self.notebook_handle = None
         self.star_data = None
         self.plot.axis.visible = False
@@ -147,7 +148,10 @@ class SphereMap:
     def healpix_cmap(self):
         """Return the bokeh color map dict used for bokeh."""
         cmap_transform = self.plot.select(name="hpix_color_transform")
-        cmap = {"field": "value", "transform": cmap_transform}
+        if len(cmap_transform) == 0 and self._hpix_cmap is not None:
+            cmap = self._hpix_cmap
+        else:
+            cmap = {"field": "value", "transform": cmap_transform}
         return cmap
 
     @property
@@ -379,7 +383,7 @@ class SphereMap:
             az = horizon_coords.az.rad  # pylint: disable=C0103
             return alt, az
 
-    def _make_healpix_data_source(
+    def make_healpix_data_source(
         self, hpvalues, nside=32, bound_step=1, nest=False, name="hpix_ds"
     ):
         """Make a data source of healpix values, corners, and projected coords.
@@ -419,7 +423,13 @@ class SphereMap:
         except AttributeError:
             order = "NEST" if nest else "RING"
             values = np.copy(hpvalues)
-            values[np.isnan(values)] = hp.UNSEEN
+            try:
+                values[np.isnan(values)] = hp.UNSEEN
+            except TypeError:
+                # If isnan fails, value must have been of a type without
+                # nans, so we don't need to do anything.
+                pass
+
             values = hp.ud_grade(hpvalues, nside, order_in=order, order_out=order)
             values[values == hp.UNSEEN] = np.nan
             hpids = np.isfinite(values).nonzero()[0]
@@ -1092,7 +1102,7 @@ class SphereMap:
         if isinstance(data, bokeh.models.DataSource):
             data_source = data
         else:
-            data_source = self._make_healpix_data_source(
+            data_source = self.make_healpix_data_source(
                 data, nside, bound_step, name=ds_name
             )
 
@@ -1102,6 +1112,7 @@ class SphereMap:
             cmap = make_zscale_linear_cmap(
                 data_source.data["value"], cmap_name="hpix_color_transform"
             )
+            self._hpix_cmap = cmap
 
         hpgr = self.plot.patches(
             xs=self.x_col,

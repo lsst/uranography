@@ -110,7 +110,7 @@ class TestSphereMap(unittest.TestCase):
 
         test_map = SphereMap(mjd=TEST_MJD, location="Cerro Pachon")
 
-        data_source = test_map._make_healpix_data_source(hpvalues, nside=nside)
+        data_source = test_map.make_healpix_data_source(hpvalues, nside=nside)
         self.assertIsInstance(data_source, bokeh.models.ColumnDataSource)
 
         self.assertEqual(len(data_source.data["value"]), npix - 1)
