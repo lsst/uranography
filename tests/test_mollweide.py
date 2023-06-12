@@ -1,7 +1,7 @@
 import unittest
 import healpy as hp
 import bokeh
-from spheremap.api import MollweideMap
+from uranography.api import MollweideMap
 from .helpers import exercise_map_class, RNG, TEST_MJD
 
 

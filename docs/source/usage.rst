@@ -4,16 +4,16 @@ Usage
 Introduction
 ------------
 
-``spheremap`` is a collection of classes that supply tools for making
+``uranography`` is a collection of classes that supply tools for making
 ``bokeh`` plots of data on the celestial sphere. It is primarily intended for 
 use in interactive environments such as jupyter notebooks or dashboards. For
 instructions on using it in such envirenments, see the example notebook,
-``spheremap.ipynb``, in the ``notebooks`` directory of the repository.
+``uranography.ipynb``, in the ``notebooks`` directory of the repository.
 
 The following examples show use in creation of non-interactive plots, saved
 as png files.
 
-Although some common plots are straightforward using ``spheremap``
+Although some common plots are straightforward using ``uranography``
 commands alone, in general the tools are intended as a supplement to the
 using ``bokeh`` directly, and not for use use as a replacement interface
 to it.
@@ -45,7 +45,7 @@ the brightest stars:
 A basic plot of points on the sky
 ---------------------------------
 
-The ``spheremap`` tools consist of a collection of classes, each of
+The ``uranography`` tools consist of a collection of classes, each of
 which implements a different map projection for the sky.
 
 In our first example, we will using the ``Planisphere`` class, which
@@ -72,7 +72,7 @@ running in a jupyter notebook in which you have run
 ``bokeh.io.output_notebook()``.
 
 >>> import bokeh.io
->>> from spheremap.api import Planisphere
+>>> from uranography.api import Planisphere
 >>> 
 >>> sky = Planisphere()
 >>> sky.plot.star(
@@ -129,7 +129,7 @@ Plotting a healpix map
 ----------------------
 
 >>> import healpy as hp
->>> from spheremap.api import MollweideMap
+>>> from uranography.api import MollweideMap
 >>> 
 >>> dust = hp.read_map(
 ...     #    "https://lambda.gsfc.nasa.gov/data/foregrounds/SFD/lambda_sfd_ebv.fits"
@@ -157,7 +157,7 @@ Details of the plot can be adjusted either through arguments to
 model and adjusting directly, as you would when fine tuning any
 ``bokeh`` plot.
 
-The healpix maps and decorations supplied by ``spheremap`` have default
+The healpix maps and decorations supplied by ``uranography`` have default
 names that can be used to ``select`` them for adjustment, or they can be
 set using arguments to their respective methods.
 
@@ -165,7 +165,7 @@ For example, use ``bokeh`` to use a histogram equalized grayscale color
 map, with each healpixel outlined in red:
 
 >>> import healpy as hp
->>> from spheremap.api import MollweideMap
+>>> from uranography.api import MollweideMap
 >>> 
 >>> dust = hp.read_map(
 ...     #    "https://lambda.gsfc.nasa.gov/data/foregrounds/SFD/lambda_sfd_ebv.fits"
@@ -215,7 +215,7 @@ the positions to be updated when the sliders are adjusted.
 
 >>> from astropy.time import Time
 >>> from astropy.coordinates import EarthLocation
->>> from spheremap.api import HorizonMap
+>>> from uranography.api import HorizonMap
 >>> 
 >>> current_time = Time.now()
 >>> location = EarthLocation.of_site("Cerro Pachon")

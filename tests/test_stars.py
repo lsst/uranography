@@ -1,5 +1,5 @@
 import unittest
-from spheremap.stars import load_bright_stars
+from uranography.stars import load_bright_stars
 
 
 class test_stars(unittest.TestCase):

@@ -4,31 +4,31 @@ API
 .. toctree::
     :maxdepth: 4
 
-.. automodule:: spheremap.spheremap
+.. automodule:: uranography.uranography
     :members: SphereMap
     :exclude-members: add_patches, healpix_cmap, healpix_data, healpix_glyph, healpix_renderer, star_data_source
     :show-inheritance:
 
-.. automodule:: spheremap.mollweide
+.. automodule:: uranography.mollweide
     :members: MollweideMap
     :show-inheritance:
 
-.. automodule:: spheremap.horizon
+.. automodule:: uranography.horizon
     :members: HorizonMap
     :show-inheritance:
 
-.. automodule:: spheremap.planisphere
+.. automodule:: uranography.planisphere
     :members: Planisphere
     :show-inheritance:
 
-.. automodule:: spheremap.armillary
+.. automodule:: uranography.armillary
     :members: ArmillarySphere
     :show-inheritance:
 
-.. automodule:: spheremap.camera
+.. automodule:: uranography.camera
     :members:
 
-.. automodule:: spheremap.stars
+.. automodule:: uranography.stars
     :members:
 
 

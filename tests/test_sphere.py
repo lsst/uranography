@@ -6,7 +6,7 @@ from astropy.coordinates import SkyCoord
 
 from numpy.random import default_rng
 
-from spheremap import sphere
+from uranography import sphere
 
 
 def _random_point_on_sphere(rng):

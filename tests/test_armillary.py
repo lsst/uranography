@@ -5,7 +5,7 @@ import bokeh
 from astropy.coordinates import SkyCoord, AltAz
 from astropy.time import Time
 import astropy.units as u
-from spheremap.api import ArmillarySphere
+from uranography.api import ArmillarySphere
 from .helpers import exercise_map_class, RNG, TEST_MJD, make_simple_map
 
 
