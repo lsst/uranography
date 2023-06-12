@@ -1,12 +1,12 @@
-# spheremap
+# uranography
 
 ## Introduction
 
-`spheremap` is a collection of classes that supply tools for making
+`uranography` is a collection of classes that supply tools for making
 `bokeh` plots of data on the celestial sphere. It is primarily intended for 
 use in interactive environments such as jupyter notebooks or dashboards.
 
-The `spheremap` python module provides a collection of classes, each of which supports a different map projection.
+The `uranography` python module provides a collection of classes, each of which supports a different map projection.
 Some of these map projections include controls that let them simulate traditional tools used in astronomy:
 the Lambert azimutal equal area projection simulates a [planisphere](https://en.wikipedia.org/wiki/Planisphere), and the othrogrophic projection simulates an [armillary sphere](https://en.wikipedia.org/wiki/Armillary_sphere).
 Each of these classes includes:
@@ -28,39 +28,37 @@ These methods add standard named glyphs, data sources, and renderer models to th
 
 ## Installation
 
-First, clone the `spheremap` repository:
+First, clone the `uranography` repository:
 
 ```
-git clone git@github.com:lsst/spheremap.git
-cd spheremap
+git clone git@github.com:lsst/uranography.git
+cd uranography
 ```
 
 Create a conda environment for it:
 
 ```
-conda create -n spheremap python=3.10
+conda create -n uranography python=3.11
 ```
 
 Install the required packages:
 
 ```
-conda activate spheremap
+conda activate uranography
 conda install -c conda-forge --file=requirements.txt
 ```
 
-Because there have been several non-backwards compatible changes to the packages it depends on, be careful to use the exact version numbers in `requirements.txt` (or don't be surprised if things don't work).
-
-Install the `spheremap` project into this environment:
+Install the `uranography` project into this environment:
 
 ```
-cd <wherever you checked out spheremap>/spheremap
+cd <wherever you checked out uranography>/uranography
 pip install -e .
 ```
 
 Install the kernel from the new jupyter environment:
 
 ```
-python -m ipykernel install --user --name=spheremap
+python -m ipykernel install --user --name=uranography
 ```
 
 To make the documentation:
@@ -72,4 +70,4 @@ make html
 
 The root of the refenece documentation will then be `docs/_build/html/source/index.html`.
 
-For tutorial documentation, follow the tutorial in `spheremap/notebooks/spheremap.ipynb` in `jupyter`.
+For tutorial documentation, follow the tutorial in `uranography/notebooks/uranography.ipynb` in `jupyter`.

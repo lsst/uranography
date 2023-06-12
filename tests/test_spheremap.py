@@ -11,7 +11,7 @@ from astropy.coordinates import EarthLocation, SkyCoord
 import astropy.units as u
 from astropy.time import Time
 
-from spheremap.api import SphereMap
+from uranography.api import SphereMap
 from .helpers import TEST_MJD, TEST_STARS, RNG, exercise_map_class, make_simple_map
 
 NUM_POINTS = 10

@@ -1,5 +1,5 @@
 import unittest
-from spheremap.api import Planisphere
+from uranography.api import Planisphere
 from .helpers import exercise_map_class, TEST_MJD
 
 

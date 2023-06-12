@@ -1,11 +1,11 @@
 Introduction
 ============
 
-``spheremap`` is a collection of classes that supply tools for making
+``uranography`` is a collection of classes that supply tools for making
 ``bokeh`` plots of data on the celestial sphere. It is primarily intended for 
 use in interactive environments such as jupyter notebooks or dashboards.
 
-The ``spheremap`` python module provides a collection of classes, each of which supports a different map projection.
+The ``uranography`` python module provides a collection of classes, each of which supports a different map projection.
 Some of these map projections include controls that let them simulate traditional tools used in astronomy:
 the Lambert azimutal equal area projection simulates a `planisphere <https://en.wikipedia.org/wiki/Planisphere>`_, and the othrogrophic projection simulates an `armillary sphere <https://en.wikipedia.org/wiki/Armillary_sphere>`_.
 Each of these classes includes:
@@ -25,7 +25,7 @@ Each of these classes includes:
 
 These methods add standard named glyphs, data sources, and renderer models to the instance of ``bokeh.plotting.Figure``, so they can be selected by name from the ``plot`` member and adjusted and refined using the standard ``bokeh`` API.
 
-The ability to simulate a planisphere or armillary sphere make plots created by ``spheremap`` particularly useful for planning observing.
+The ability to simulate a planisphere or armillary sphere make plots created by ``uranography`` particularly useful for planning observing.
 Where map projections commonly used in cosmology (e.g. Mollweide) heavily distort features and periodicities of primary importance to observation planning (e.g. the horizon),
 such features are more naturally represented in a simulated planisphere.
 When used with fully interactive sliders, an orthographic projection helps a human build a mental three dimensional picture of the sky difficult to achieve with other map projections, or with non-interactive orthographic projections.
@@ -45,4 +45,4 @@ or with a mental picture created with the aide of a virtual `armillary sphere <h
 .. raw:: html
     :file: asphere.html
 
-All three of these figures were created using ``spheremap``.
+All three of these figures were created using ``uranography``.

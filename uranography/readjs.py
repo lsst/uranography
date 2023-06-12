@@ -1,7 +1,7 @@
 """Load javascript code for use in callbacks.
 
 The main work of this submodule is locating the relevant file within the
-spheremap package.
+uranography package.
 """
 
 import importlib.resources

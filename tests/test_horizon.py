@@ -1,7 +1,7 @@
 import unittest
 import healpy as hp
 import bokeh
-from spheremap.api import HorizonMap
+from uranography.api import HorizonMap
 from .helpers import exercise_map_class, RNG, TEST_MJD, make_simple_map
 
 
