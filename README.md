@@ -12,7 +12,7 @@ the Lambert azimutal equal area projection simulates a [planisphere](https://en.
 Each of these classes includes:
 
 - a member (`plot`) that is a perfectly normal instance of [`bokeh.plotting.Figure`](https://docs.bokeh.org/en/latest/docs/reference/plotting/figure.html#bokeh.plotting.figure). Through this instance, users can create and modify the full high level API provided by `bokeh`, and the full set of `bokeh` interactive tools can be applied.
-- `bokeh` [`transforms`](https://docs.bokeh.org/en/latest/docs/reference/transform.html) that apply the map projection in the client. By using `bokeh` client-side transforms to handle map projections, `sphremap` supports the application and interactive adjustment of map projection parameters without commutication with a server (or `python` process of any sort). This means that updates to projections (e.g. with a control slider in a web page) do not incur any overhead for communication with a server, thereby allowing smooth motion and interaction even with slow network connections. Furthermore, plots can be saved as strings and either loaded into browsers direcly from disk, or embedded into other web pages, and the plots will remain active and interactive even if `python` process that produced the plots no longer exists.
+- `bokeh` [`transforms`](https://docs.bokeh.org/en/latest/docs/reference/transform.html) that apply the map projection in the client. By using `bokeh` client-side transforms to handle map projections, `uranography` supports the application and interactive adjustment of map projection parameters without commutication with a server (or `python` process of any sort). This means that updates to projections (e.g. with a control slider in a web page) do not incur any overhead for communication with a server, thereby allowing smooth motion and interaction even with slow network connections. Furthermore, plots can be saved as strings and either loaded into browsers direcly from disk, or embedded into other web pages, and the plots will remain active and interactive even if the `python` process that produced the plots no longer exists.
 - Methods for plotting [`healpix`](https://healpix.jpl.nasa.gov/) and [healsparse](https://github.com/LSSTDESC/healsparse) arrays.
 - Methods for adding a variety of features commonly used in maps of the sky, including:
   
@@ -38,14 +38,14 @@ cd uranography
 Create a conda environment for it:
 
 ```
-conda create -n uranography python=3.11
+conda create --channel conda-forge --name uranography --file requirements.txt python=3.11
 ```
 
-Install the required packages:
+If you want to run tests, install the test requirements as well:
 
 ```
 conda activate uranography
-conda install -c conda-forge --file=requirements.txt
+conda install -c conda-forge --file=test-requirements.txt
 ```
 
 Install the `uranography` project into this environment:
