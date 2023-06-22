@@ -1,19 +1,20 @@
 numpy
 pandas
-astropy
+astropy >= 5.3
 healpy
 healsparse
 libtiff
-bokeh
-panel
+bokeh >= 3.1.1
+panel >= 1.1.0
 colorcet
-pytest
 jupyter
 nbconvert
+webcolors
+uri-template
+jsonpointer
+fqdn
+arrow
+isoduration
 selenium
 firefox 
 geckodriver
-black = 22.10.0
-pytest-black = 0.3.12
-flake8 = 4.0.1
-pytest-flake8 = 1.1.1
