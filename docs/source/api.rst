@@ -4,7 +4,7 @@ API
 .. toctree::
     :maxdepth: 4
 
-.. automodule:: uranography.uranography
+.. automodule:: uranography.spheremap
     :members: SphereMap
     :exclude-members: add_patches, healpix_cmap, healpix_data, healpix_glyph, healpix_renderer, star_data_source
     :show-inheritance:
