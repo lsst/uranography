@@ -5,3 +5,5 @@ author = "Eric Neilsen"
 base_url = "https://uranography.lsst.io"
 github_url = "https://github.com/lsst/uranography"
 doc_path = "https://uranography.lsst.io"
+[project.python]
+package="uranography"

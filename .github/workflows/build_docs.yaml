@@ -36,7 +36,7 @@ jobs:
           python -m pip install .
 
       - name: install documenteer
-        run: pip install 'documenteer[guide]'
+        run: pip install "documenteer[guide]"
 
       - name: conda list
         shell: bash -l {0}
