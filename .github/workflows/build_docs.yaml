@@ -11,6 +11,7 @@ on:
 
 jobs:
   build_sphinx_docs:
+    name: Build and upload documentation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -26,16 +27,21 @@ jobs:
         run: |
           conda config --set always_yes yes
           conda install --quiet --file=requirements.txt
+      - name: install documenteer
+        run: pip install 'documenteer[guide]'
       - name: install uranography
         shell: bash -l {0}
         run: |
           echo `pwd`
           python -m pip install .
-      - name: Install documenteer
-        run: pip install 'documenteer[guide]'
-      - name: Build documentation
-        working-directory: "docs"
-        run: make html
+      - name: conda list
+        shell: bash -l {0}
+        run: conda list
+      - name: build documentation
+        shell: bash -l {0}
+        run: |
+          cd docs
+          make html
       - name: Upload documentation
         uses: lsst-sqre/ltd-upload@v1
         with:
