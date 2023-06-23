@@ -98,7 +98,6 @@ class TestSphereMap(unittest.TestCase):
         )
 
     def test_make_healpix_data_source(self):
-
         # Test with a plain healpy array
         nside = 8
         bound_step = 1
@@ -205,7 +204,6 @@ class TestSphereMap(unittest.TestCase):
         test_map.notebook_display()
 
     def test_add_healpix(self):
-
         # Test with a plain healpy array
         nside = 8
         npix = hp.nside2npix(nside)
