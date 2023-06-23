@@ -42,12 +42,11 @@ jobs:
         shell: bash -l {0}
         run: |
           conda list
+          echo "checking uranography import and version"
           python -c "import uranography; print(uranography.__version__)"
+          cd docs
+          package-docs build
 
-      - name: build documentation
-        shell: bash -l {0}
-        working-directory: ./docs
-        run: package-docs build
 
       - name: Upload documentation
         uses: lsst-sqre/ltd-upload@v1
