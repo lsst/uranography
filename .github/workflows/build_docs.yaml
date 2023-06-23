@@ -45,7 +45,7 @@ jobs:
           echo "checking uranography import and version"
           python -c "import uranography; print(uranography.__version__)"
           cd docs
-          package-docs build
+          make html
 
 
       - name: Upload documentation
