@@ -1,0 +1,8 @@
+[project]
+title = "uranography"
+copyright = "Copyright 2023 Fermi Research Alliance, LLC."
+author = "Eric Neilsen"
+base_url = "https://uranography.lsst.io"
+github_url = "https://github.com/lsst/uranography"
+[project.python]
+package="uranography"
