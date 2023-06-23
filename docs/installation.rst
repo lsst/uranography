@@ -50,6 +50,13 @@ install the kernel from the new jupyter environment:
 
  python -m ipykernel install --user --name=uranography
 
+If you need to remove the environment and/or kernel:
+
+::
+
+  conda env remove -n uranography
+  jupyter kernelspec uninstall uranography
+
 
 Building Documentation
 ----------------------
