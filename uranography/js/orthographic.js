@@ -67,24 +67,6 @@ function cartToEq(x, y, z) {
     return [ra, decl]
 }
 
-function get_gpu() {
-    if (!window.hasOwnProperty('gpu')) {
-        window.gpu = new GPU()
-    }
-    return window.gpu;
-}
-
-const multiplyMultiMatrix = get_gpu().createKernel(function (coeff, data) {
-    let sum = 0;
-    let hpix = this.thread.y
-    let corner = this.thread.x
-    let out_coord = this.thread.z
-    for (let in_coord = 0; in_coord < 3; in_coord++) {
-        sum += coeff[out_coord][in_coord] * data[in_coord][hpix][corner];
-    }
-    return sum;
-})
-
 function multiplyRotationMatrix(a, b) {
     let result = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
     for (let x = 0; x < 3; x++) {
@@ -112,6 +94,53 @@ function computeRotationMatrix(ux, uy, uz, angle) {
     const rzz = cosa + uz * uz * ccosa
     const matrix = [[rxx, rxy, rxz], [ryx, ryy, ryz], [rzx, rzy, rzz]]
     return matrix
+}
+
+let multiplyMultiMatrix = function (coeff, data) {
+    let result = []
+    for (let out_coord = 0; out_coord < 3; out_coord++) {
+        result[out_coord] = []
+        for (let hpix = 0; hpix < data[0].length; hpix++) {
+            result[out_coord][hpix] = []
+        }
+    }
+
+    for (let hpix = 0; hpix < data[0].length; hpix++) {
+        for (let corner = 0; corner < data[0][hpix].length; corner++) {
+            for (let out_coord = 0; out_coord < 3; out_coord++) {
+                result[out_coord][hpix][corner] = 0;
+                for (let in_coord = 0; in_coord < 3; in_coord++) {
+                    result[out_coord][hpix][corner] += coeff[out_coord][in_coord] * data[in_coord][hpix][corner];
+                }
+            }
+        }
+    }
+    return result
+}
+let useGPU = false
+
+try {
+    function get_gpu() {
+        if (!window.hasOwnProperty('gpu')) {
+            window.gpu = new GPU()
+        }
+        return window.gpu;
+    }
+
+    multiplyMultiMatrix = get_gpu().createKernel(function (coeff, data) {
+        let sum = 0;
+        let hpix = this.thread.y
+        let corner = this.thread.x
+        let out_coord = this.thread.z
+        for (let in_coord = 0; in_coord < 3; in_coord++) {
+            sum += coeff[out_coord][in_coord] * data[in_coord][hpix][corner];
+        }
+        return sum;
+    })
+
+    useGPU = true
+} catch (e) {
+    console.log("gpu.js not available, falling back to CPU")
 }
 
 function applyHealpixRotations(hpx, hpy, hpz, codecl, ra, orient, npoleCoords1) {
@@ -212,7 +241,9 @@ function orthoTransform() {
             result[i] = coords[coord_idx]
         }
     } else {
-        multiplyMultiMatrix.setOutput([x_hp[0].length, x_hp.length, 3]);
+        if (useGPU) {
+            multiplyMultiMatrix.setOutput([x_hp[0].length, x_hp.length, 3]);
+        }
         const coords = applyHealpixRotations(x_hp, y_hp, z_hp, centerCodecl, centerRA, orient, npoleCoords1)
         for (let i = 0; i < x_hp.length; i++) {
             result[i] = new Array(x_hp[i].length)
@@ -290,7 +321,9 @@ function updateOrthoData() {
             if ('z_orth' in data) { data['z_orth'][i] = coords[2] }
         }
     } else {
-        multiplyMultiMatrix.setOutput([x_hp[0].length, x_hp.length, 3]);
+        if (useGPU) {
+            multiplyMultiMatrix.setOutput([x_hp[0].length, x_hp.length, 3]);
+        }
         const coords = applyHealpixRotations(x_hp, y_hp, z_hp, centerCodecl, centerRA, orient, npoleCoords1)
         for (let i = 0; i < x_hp.length; i++) {
             for (let j = 0; j < x_hp[i].length; j++) {
