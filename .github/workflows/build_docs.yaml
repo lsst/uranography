@@ -12,11 +12,12 @@ on:
 jobs:
   build_sphinx_docs:
     runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v3
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
           channels: conda-forge,defaults
           channel-priority: strict
           show-channel-urls: true
@@ -32,7 +33,7 @@ jobs:
       - name: Build documentation
         working-directory: ./doc
         run: package-docs build
-        
+
       - name: Upload documentation
         uses: lsst-sqre/ltd-upload@v1
         with:
