@@ -26,14 +26,16 @@ jobs:
         run: |
           conda config --set always_yes yes
           conda install --quiet --file=requirements.txt
-      - name: Install uranography
-        run: pip install -v .
+      - name: install uranography
+        shell: bash -l {0}
+        run: |
+          echo `pwd`
+          python -m pip install .
       - name: Install documenteer
         run: pip install 'documenteer[guide]'
       - name: Build documentation
         working-directory: "docs"
-        run: package-docs build
-
+        run: make html
       - name: Upload documentation
         uses: lsst-sqre/ltd-upload@v1
         with:
