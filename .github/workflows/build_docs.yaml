@@ -40,7 +40,9 @@ jobs:
 
       - name: conda list
         shell: bash -l {0}
-        run: conda list
+        run: |
+          conda list
+          python -c "import uranography; print(uranography.__version__)"
 
       - name: build documentation
         shell: bash -l {0}

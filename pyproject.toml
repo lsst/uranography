@@ -1,5 +1,5 @@
 [build-system]
-requires = [ "setuptools", "setuptools_scm" ]
+requires = [ "setuptools", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,6 +9,7 @@ readme = "README.md"
 authors = [
     {name="Eric H. Neilsen, Jr.", email="neilsen@fnal.gov"},
 ]
+license = { text = "GPL" }
 classifiers = [ 
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
@@ -18,32 +19,12 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Astronomy",
  ]
 dynamic = [ "version" ]
-dependencies = [
-    "numpy",
-    "pandas",
-    "astropy >= 5.3",
-    "healpy",
-    "healsparse",
-    "bokeh >= 3.1.1",
-    "panel >= 1.1.0",
-    "colorcet",
-    "jupyter",
-    "nbconvert",
-    "selenium",
-]
 
 [project.urls]
 Homepage = "https://uranography.lsst.io"
 Source = "https://github.com/lsst/uranography"
 
 [project.optional-dependencies]
-test = [
-    "pytest",
-    "black == 22.10.0",
-    "pytest-black == 0.3.12",
-    "flake8 == 4.0.1",
-    "pytest-flake8 == 1.1.1",
-]
 dev = [
     "documenteer[guide]"
 ]
