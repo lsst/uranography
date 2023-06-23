@@ -44,6 +44,8 @@ jobs:
           conda list
           echo "checking uranography import and version"
           python -c "import uranography; print(uranography.__version__)"
+          echo `which python`
+          echo `which package-docs`
           cd docs
           package-docs build
 
