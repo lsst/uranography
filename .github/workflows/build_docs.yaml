@@ -1,0 +1,53 @@
+name: Build and Upload Docs
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build_sphinx_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          # Need to clone everything for the git tags.
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: "setup.cfg"
+
+      - name: Update pip/wheel infrastructure
+        run: |
+          python -m pip install --upgrade pip
+          pip install wheel
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Install uranography
+        run: pip install -v .
+
+      - name: Install documenteer
+        run: pip install 'documenteer[guide]'
+
+      - name: Build documentation
+        working-directory: ./doc
+        run: package-docs build
+
+      - name: Upload documentation
+        uses: lsst-sqre/ltd-upload@v1
+        with:
+          project: "uranography"
+          dir: "docs/_build/html"
+          username: ${{ secrets.ltd_username }}
+          password: ${{ secrets.ltd_password }}
