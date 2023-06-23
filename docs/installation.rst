@@ -5,7 +5,7 @@ Installation
 Quick Installation
 ------------------
 
-``pip install uranography``
+Appearing shortly: ``pip install uranography``
 
 coming soon: ``conda install -c conda-forge uranography``
 

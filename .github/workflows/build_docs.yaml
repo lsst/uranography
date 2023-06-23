@@ -46,9 +46,8 @@ jobs:
 
       - name: build documentation
         shell: bash -l {0}
-        run: |
-          cd docs
-          make html
+        working-directory: ./docs
+        run: package-docs build
 
       - name: Upload documentation
         uses: lsst-sqre/ltd-upload@v1
