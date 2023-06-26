@@ -2,7 +2,7 @@ Introduction
 ============
 
 ``uranography`` is a collection of classes that supply tools for making
-``bokeh`` plots of data on the celestial sphere. It is primarily intended for 
+``bokeh`` plots of data on the celestial sphere. It is primarily intended for
 use in interactive environments such as jupyter notebooks or dashboards.
 
 The ``uranography`` python module provides a collection of classes, each of which supports a different map projection.

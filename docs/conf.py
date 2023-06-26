@@ -6,3 +6,6 @@
 from documenteer.conf.guide import *
 
 linkcheck_retries = 2
+
+html_copy_source = True
+html_show_sourcelink = False
