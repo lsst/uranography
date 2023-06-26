@@ -6,4 +6,3 @@
 from documenteer.conf.guide import *
 
 linkcheck_retries = 2
-
