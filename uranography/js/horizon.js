@@ -37,7 +37,7 @@ function horizonTransform() {
 
     const coord_idx = (proj_coord == 'x') ? 0 : 1
 
-    
+
     // Columns can contain lists of coords (eg for corners of healpixels), or individual points.
     // If they are lists, iteratate over each element. Otherwise, just apply the rotation to the point.
     for (let i = 0; i < ra.length; i++) {

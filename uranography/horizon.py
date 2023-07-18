@@ -1,6 +1,7 @@
 """Interactive sky map in horizon (alt/az) coordinates."""
 
 import bokeh
+
 from .spheremap import MovingSphereMap
 
 
@@ -31,16 +32,10 @@ class HorizonMap(MovingSphereMap):
         coord_cols = ["ra", "decl"]
         n_hpix = len(hpix.data["ra"])
         corners_per_hpix = len(hpix.data["ra"][0])
-        corners = (
-            hpix.to_df()
-            .loc[:, ["hpid"] + coord_cols]
-            .explode(column=coord_cols, ignore_index=True)
-        )
+        corners = hpix.to_df().loc[:, ["hpid"] + coord_cols].explode(column=coord_cols, ignore_index=True)
         assert len(corners) == n_hpix * corners_per_hpix
 
-        x_hz, y_hz = self.eq_to_horizon(
-            corners["ra"].astype(float), corners["decl"].astype(float)
-        )
+        x_hz, y_hz = self.eq_to_horizon(corners["ra"].astype(float), corners["decl"].astype(float))
 
         hpix.add(x_hz.reshape(n_hpix, corners_per_hpix).tolist(), name="x_hz")
         hpix.add(y_hz.reshape(n_hpix, corners_per_hpix).tolist(), name="y_hz")

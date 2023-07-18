@@ -1,23 +1,23 @@
 """Base classes for sky maps made using bokeh.
 """
 
+import time
+import uuid
 from collections import OrderedDict, namedtuple
 from collections.abc import Iterable
 from copy import deepcopy
 from warnings import warn
-import uuid
-import time
 
-import numpy as np
-import pandas as pd
-import healpy as hp
+import astropy.units as u
+import astropy.visualization
 import bokeh
 import bokeh.plotting
-import astropy.units as u
-from astropy.coordinates import SkyCoord, EarthLocation
-from astropy.time import Time
-import astropy.visualization
+import healpy as hp
+import numpy as np
+import pandas as pd
 import panel as pn
+from astropy.coordinates import EarthLocation, SkyCoord
+from astropy.time import Time
 from IPython.display import display
 
 try:
@@ -27,15 +27,12 @@ except ModuleNotFoundError:
 
 from .readjs import read_javascript
 
-
 ProjSliders = namedtuple("ProjSliders", ["alt", "az", "mjd"])
 
 # Angles of excactly 90 degrees result in edge conditions, e.g.
 # horizon circles with gaps depending on how trig is rounded.
 # Define an "almost 90" to get consistent behaviour.
-ALMOST_90 = np.degrees(
-    np.arccos(2 * np.finfo(float).resolution)  # pylint: disable=E1101
-)
+ALMOST_90 = np.degrees(np.arccos(2 * np.finfo(float).resolution))  # pylint: disable=E1101
 
 
 class SphereMap:
@@ -101,9 +98,7 @@ class SphereMap:
 
         self.visible_slider_names = []
         self.update_functions = []
-        self.force_update_time = bokeh.models.Div(
-            text=str(time.time_ns()), name="update_time", visible=False
-        )
+        self.force_update_time = bokeh.models.Div(text=str(time.time_ns()), name="update_time", visible=False)
         self.add_sliders()
 
     @property
@@ -165,9 +160,7 @@ class SphereMap:
         """
         if self._figure is None:
             shown_sliders = [self.sliders[sn] for sn in self.visible_slider_names]
-            self._figure = bokeh.layouts.column(
-                self.force_update_time, self.plot, *shown_sliders
-            )
+            self._figure = bokeh.layouts.column(self.force_update_time, self.plot, *shown_sliders)
 
         return self._figure
 
@@ -198,22 +191,14 @@ class SphereMap:
     @property
     def lst(self):
         """Return the Local Sidereal Time."""
-        lst = (
-            Time(self.mjd, format="mjd", location=self.location)
-            .sidereal_time("mean")
-            .deg
-        )
+        lst = Time(self.mjd, format="mjd", location=self.location).sidereal_time("mean").deg
         return lst
 
     @lst.setter
     def lst(self, value):
         """Modify the MJD to match the LST, keeping the same (UT) day."""
         mjd_start = np.floor(self.mjd)
-        lst_start = (
-            Time(mjd_start, format="mjd", location=self.location)
-            .sidereal_time("mean")
-            .deg
-        )
+        lst_start = Time(mjd_start, format="mjd", location=self.location).sidereal_time("mean").deg
         self.mjd = mjd_start + ((value - lst_start) % 360) / 360.9856405809225
 
     @property
@@ -226,9 +211,7 @@ class SphereMap:
             Javascript code to update the bokeh model.
         """
         js_code = "\n".join(read_javascript(fn) for fn in self.update_js_fnames)
-        js_code = "\n".join(
-            [js_code, self.update_js_command, "data_source.change.emit()"]
-        )
+        js_code = "\n".join([js_code, self.update_js_command, "data_source.change.emit()"])
         return js_code
 
     def proj_transform(self, proj_coord, data_source=None, column_name=None):
@@ -358,9 +341,7 @@ class SphereMap:
         angle_unit = u.deg if degrees else u.rad
         eq_coords = SkyCoord(ra=ra * angle_unit, dec=decl * angle_unit, frame="icrs")
         obs_time = Time(self.mjd, format="mjd", scale="utc")
-        horizon_frame = astropy.coordinates.AltAz(
-            obstime=obs_time, location=self.location
-        )
+        horizon_frame = astropy.coordinates.AltAz(obstime=obs_time, location=self.location)
         horizon_coords = eq_coords.transform_to(horizon_frame)
 
         if cart:
@@ -383,9 +364,7 @@ class SphereMap:
             az = horizon_coords.az.rad  # pylint: disable=C0103
             return alt, az
 
-    def make_healpix_data_source(
-        self, hpvalues, nside=32, bound_step=1, nest=False, name="hpix_ds"
-    ):
+    def make_healpix_data_source(self, hpvalues, nside=32, bound_step=1, nest=False, name="hpix_ds"):
         """Make a data source of healpix values, corners, and projected coords.
 
         Parameters
@@ -441,9 +420,7 @@ class SphereMap:
         hpix_bounds_vec = hp.boundaries(nside, hpids, bound_step, nest=nest)
         # Rearrange the axes to match what is used by hp.vec2ang
         hpix_bounds_vec_long = np.moveaxis(hpix_bounds_vec, 1, 2).reshape((npts, 3))
-        ra, decl = hp.vec2ang(  # pylint: disable=C0103
-            hpix_bounds_vec_long, lonlat=True
-        )
+        ra, decl = hp.vec2ang(hpix_bounds_vec_long, lonlat=True)  # pylint: disable=C0103
         center_ra, center_decl = hp.pix2ang(nside, hpids, nest=nest, lonlat=True)
 
         # in hpix_bounds, each row corresponds to a healpixels, and columns
@@ -485,9 +462,7 @@ class SphereMap:
         hpix.add(deepcopy(zero_coord), name="z_orth")
         return hpix
 
-    def _add_projection_columns(
-        self, hpix, nside, projector=None  # pylint: disable=W0613
-    ):
+    def _add_projection_columns(self, hpix, nside, projector=None):  # pylint: disable=W0613
         """Add columns with projection values."""
         if projector is None:
             return self._add_zero_projection_columns(hpix)
@@ -495,11 +470,7 @@ class SphereMap:
         coord_cols = ["x_hp", "y_hp", "z_hp"]
         n_hpix = len(hpix.data["ra"])
         corners_per_hpix = len(hpix.data["ra"][0])
-        corners = (
-            hpix.to_df()
-            .loc[:, ["hpid"] + coord_cols]
-            .explode(column=coord_cols, ignore_index=True)
-        )
+        corners = hpix.to_df().loc[:, ["hpid"] + coord_cols].explode(column=coord_cols, ignore_index=True)
         assert len(corners) == n_hpix * corners_per_hpix
 
         x, y = projector.vec2xy(  # pylint: disable=C0103
@@ -596,9 +567,7 @@ class SphereMap:
             graticule_list.append(this_graticule)
             graticule_list.append(stop_df)
 
-        graticule_points = bokeh.models.ColumnDataSource(
-            pd.concat(graticule_list), name=name
-        )
+        graticule_points = bokeh.models.ColumnDataSource(pd.concat(graticule_list), name=name)
 
         self.connect_controls(graticule_points)
         return graticule_points
@@ -664,9 +633,7 @@ class SphereMap:
             start_bear = 0
             end_bear = 360 + step
             this_graticule = pd.DataFrame(
-                self._make_horizon_circle_points(
-                    90, 0, radius, start_bear, end_bear, step
-                ).data
+                self._make_horizon_circle_points(90, 0, radius, start_bear, end_bear, step).data
             )
             this_graticule["grat"] = f"Alt{alt}"
 
@@ -676,9 +643,7 @@ class SphereMap:
         for az in np.arange(min_az, max_az + step, az_space):  # pylint: disable=C0103
             radius = 90
             this_graticule = pd.DataFrame(
-                self._make_horizon_circle_points(
-                    0, az + 90, radius, 0, 360 + step, step
-                ).data
+                self._make_horizon_circle_points(0, az + 90, radius, 0, 360 + step, step).data
             )
             this_graticule.query(
                 f"(alt > {min_alt}) and (alt <= {max_alt}) and (abs(az-{az}) < 1)",
@@ -690,9 +655,7 @@ class SphereMap:
             graticule_list.append(this_graticule)
             graticule_list.append(stop_df)
 
-        graticule_points = bokeh.models.ColumnDataSource(
-            pd.concat(graticule_list), name=name
-        )
+        graticule_points = bokeh.models.ColumnDataSource(pd.concat(graticule_list), name=name)
         self.connect_controls(graticule_points)
         return graticule_points
 
@@ -735,9 +698,7 @@ class SphereMap:
 
         bearing_angles = np.arange(start_bear, end_bear + step, step) * u.deg
         center_coords = SkyCoord(center_ra * u.deg, center_decl * u.deg)
-        circle_coords = center_coords.directional_offset_by(
-            bearing_angles, radius * u.deg
-        )
+        circle_coords = center_coords.directional_offset_by(bearing_angles, radius * u.deg)
         bearings = bearing_angles.value.tolist()
         ras = circle_coords.ra.deg.tolist()
         decls = circle_coords.dec.deg.tolist()
@@ -903,11 +864,7 @@ class SphereMap:
         ras = ra if isinstance(ra, Iterable) else [ra]
         decls = decl if isinstance(decl, Iterable) else [decl]
         if len(ras) > 0:
-            glyph_sizes = (
-                glyph_size
-                if isinstance(glyph_size, Iterable)
-                else [glyph_size] * len(ras)
-            )
+            glyph_sizes = glyph_size if isinstance(glyph_size, Iterable) else [glyph_size] * len(ras)
             names = [name] * len(ras) if isinstance(name, str) else name
         else:
             glyph_sizes = np.array([])
@@ -1102,16 +1059,12 @@ class SphereMap:
         if isinstance(data, bokeh.models.DataSource):
             data_source = data
         else:
-            data_source = self.make_healpix_data_source(
-                data, nside, bound_step, name=ds_name
-            )
+            data_source = self.make_healpix_data_source(data, nside, bound_step, name=ds_name)
 
         self._add_projection_columns(data_source, nside)
 
         if cmap is None:
-            cmap = make_zscale_linear_cmap(
-                data_source.data["value"], cmap_name="hpix_color_transform"
-            )
+            cmap = make_zscale_linear_cmap(data_source.data["value"], cmap_name="hpix_color_transform")
             self._hpix_cmap = cmap
 
         hpgr = self.plot.patches(
@@ -1225,9 +1178,7 @@ class SphereMap:
         if "name" not in line_kwargs:
             line_kwargs["name"] = "sphere_circle_glyph"
 
-        circle_points = self._make_circle_points(
-            center_ra, center_decl, **circle_kwargs
-        )
+        circle_points = self._make_circle_points(center_ra, center_decl, **circle_kwargs)
         self.plot.line(
             x=self.proj_transform("x", circle_points),
             y=self.proj_transform("y", circle_points),
@@ -1272,9 +1223,7 @@ class SphereMap:
             line_kwargs = {}
 
         if data_source is None:
-            circle_points = self._make_horizon_circle_points(
-                90, 0, radius=zd, **circle_kwargs
-            )
+            circle_points = self._make_horizon_circle_points(90, 0, radius=zd, **circle_kwargs)
             if "mjd" in self.sliders:
                 self.set_emit_update_func(circle_points)
         else:
@@ -1336,9 +1285,7 @@ class SphereMap:
             circle_kwargs["name"] = "circle_glyph"
 
         if data_source is None:
-            data_source = self._make_marker_data_source(
-                ra, decl, name, glyph_size, min_mjd, max_mjd
-            )
+            data_source = self._make_marker_data_source(ra, decl, name, glyph_size, min_mjd, max_mjd)
 
         self.plot.circle(
             x=self.proj_transform("x", data_source),
@@ -1492,9 +1439,7 @@ class SphereMap:
 
         self.star_data = pd.DataFrame(points_data)
         if data_source is None:
-            star_data_source = self._make_points(
-                self.star_data, ds_name="bright_star_ds"
-            )
+            star_data_source = self._make_points(self.star_data, ds_name="bright_star_ds")
         else:
             star_data_source = data_source
 
@@ -1540,8 +1485,7 @@ class SphereMap:
         """
         star_data = self.star_data.query(f"Vmag < {mag_limit}").copy()
         star_data.loc[:, "glyph_size"] = (
-            self.max_star_glyph_size
-            - (self.max_star_glyph_size / mag_limit) * star_data["Vmag"]
+            self.max_star_glyph_size - (self.max_star_glyph_size / mag_limit) * star_data["Vmag"]
         )
         stars = self._make_points(star_data)
         star_data_source = self.plot.select(name="bright_star_ds")
@@ -1555,14 +1499,10 @@ class SphereMap:
         points : `bokeh.models.ColumnDataSource`
             The bokeh data source with points on the ecliptic.
         """
-        ecliptic_pole = SkyCoord(
-            lon=0 * u.degree, lat=90 * u.degree, frame="geocentricmeanecliptic"
-        ).icrs
+        ecliptic_pole = SkyCoord(lon=0 * u.degree, lat=90 * u.degree, frame="geocentricmeanecliptic").icrs
         line_kwargs = deepcopy(self.default_ecliptic_line_kwargs)
         line_kwargs.update(kwargs)
-        points = self.add_circle(
-            ecliptic_pole.ra.deg, ecliptic_pole.dec.deg, line_kwargs=line_kwargs
-        )
+        points = self.add_circle(ecliptic_pole.ra.deg, ecliptic_pole.dec.deg, line_kwargs=line_kwargs)
         return points
 
     def add_galactic_plane(self, **kwargs):
@@ -1576,9 +1516,7 @@ class SphereMap:
         galactic_pole = SkyCoord(l=0 * u.degree, b=90 * u.degree, frame="galactic").icrs
         line_kwargs = deepcopy(self.default_galactic_plane_line_kwargs)
         line_kwargs.update(kwargs)
-        points = self.add_circle(
-            galactic_pole.ra.deg, galactic_pole.dec.deg, line_kwargs=line_kwargs
-        )
+        points = self.add_circle(galactic_pole.ra.deg, galactic_pole.dec.deg, line_kwargs=line_kwargs)
         return points
 
     def decorate(self):
@@ -1616,9 +1554,7 @@ class MovingSphereMap(SphereMap):
             self.set_emit_update_func(data_source)
 
 
-def make_zscale_linear_cmap(
-    values, field_name="value", palette="Inferno256", cmap_name=None, **kwargs
-):
+def make_zscale_linear_cmap(values, field_name="value", palette="Inferno256", cmap_name=None, **kwargs):
     """Automatic linear scaling for images.
 
     Parameters
@@ -1650,9 +1586,7 @@ def make_zscale_linear_cmap(
             scale_limits = zscale_interval.get_limits(values)
     else:
         scale_limits = [0, 1]
-    cmap = bokeh.transform.linear_cmap(
-        field_name, palette, scale_limits[0], scale_limits[1]
-    )
+    cmap = bokeh.transform.linear_cmap(field_name, palette, scale_limits[0], scale_limits[1])
     cmap["transform"].name = cmap_name
 
     return cmap
@@ -1699,15 +1633,11 @@ def split_healpix_by_resolution(hp_map, nside_low=8, nside_high=None):
     try:
         hp_map_high = healsparse.HealSparseMap(
             nside_coverage=nside_high,
-            healpix_map=hp.reorder(
-                np.where(use_low_high == 0, hp_map, hp.UNSEEN), r2n=True
-            ),
+            healpix_map=hp.reorder(np.where(use_low_high == 0, hp_map, hp.UNSEEN), r2n=True),
         )
         hp_map_low = healsparse.HealSparseMap(
             nside_coverage=nside_low,
-            healpix_map=hp.reorder(
-                np.where(use_low_low == 1, hp_map_low, hp.UNSEEN), r2n=True
-            ),
+            healpix_map=hp.reorder(np.where(use_low_low == 1, hp_map_low, hp.UNSEEN), r2n=True),
         )
     except NameError:
         hp_map_high = np.where(use_low_high == 0, hp_map, hp.UNSEEN)

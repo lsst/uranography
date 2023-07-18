@@ -30,7 +30,7 @@ function rotateCart(ux, uy, uz, angle, x0, y0, z0) {
 }
 
 function applyRotations(hpx, hpy, hpz, codecl, ra, orient, npoleCoords1) {
-    // We are looking out of the sphere from the inside, so the center is 180 degrees 
+    // We are looking out of the sphere from the inside, so the center is 180 degrees
     // from the front of the sphere, hence the pi.
     const decl_rot = Math.PI + codecl
     const ra_rot = ra - Math.PI / 2
@@ -49,7 +49,7 @@ function applyRotations(hpx, hpy, hpz, codecl, ra, orient, npoleCoords1) {
     // Use 5*Number.EPSILON instead of exactly 0, because the
     // assorted trig operations result in values slightly above or below
     // 0 when the horizon is in principle exactly 0, and this gives an
-    // irregularly dotted/dashed appearance to the horizon if 
+    // irregularly dotted/dashed appearance to the horizon if
     // a cutoff of exactly 0 is used.
     if (coords[2] > 5 * Number.EPSILON) {
         coords[0] = NaN
@@ -237,7 +237,7 @@ function computeRotationMatrix(ux, uy, uz, angle) {
 }
 
 function applyHealpixRotations(hpx, hpy, hpz, codecl, ra, orient, npoleCoords1) {
-    // We are looking out of the sphere from the inside, so the center is 180 degrees 
+    // We are looking out of the sphere from the inside, so the center is 180 degrees
     // from the front of the sphere, hence the pi.
     const decl_rot = Math.PI + codecl
     const ra_rot = ra - Math.PI / 2
@@ -258,7 +258,7 @@ function applyHealpixRotations(hpx, hpy, hpz, codecl, ra, orient, npoleCoords1) 
     // Use 5*Number.EPSILON instead of exactly 0, because the
     // assorted trig operations result in values slightly above or below
     // 0 when the horizon is in principle exactly 0, and this gives an
-    // irregularly dotted/dashed appearance to the horizon if 
+    // irregularly dotted/dashed appearance to the horizon if
     // a cutoff of exactly 0 is used.
     for (let hpix = 0; hpix < coords[0].length; hpix++) {
         for (let corner = 0; corner < coords[0][0].length; corner++) {

@@ -33,7 +33,7 @@ let data = {}
 try {
     data = data_source.data
 } catch(e) {
-    // If we were not passed a data_source with data, assume we were 
+    // If we were not passed a data_source with data, assume we were
     // passed a column of coordinate pairs to transform, and build our
     // data from that.
     data['ra'] = new Array(xs.length)

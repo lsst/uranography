@@ -1,7 +1,8 @@
 """Interactive sky map in a Mollweide projection."""
 
-import numpy as np
 import healpy as hp
+import numpy as np
+
 from .spheremap import SphereMap
 
 
