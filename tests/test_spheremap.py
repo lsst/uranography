@@ -1,18 +1,19 @@
 import unittest
 from copy import deepcopy
 
+import astropy.coordinates
+import astropy.units as u
+import bokeh.plotting
+import healpy as hp
 import numpy as np
 import pandas as pd
-import healpy as hp
-import bokeh.plotting
 import panel as pn
-import astropy.coordinates
 from astropy.coordinates import EarthLocation, SkyCoord
-import astropy.units as u
 from astropy.time import Time
 
 from uranography.api import SphereMap
-from .helpers import TEST_MJD, TEST_STARS, RNG, exercise_map_class, make_simple_map
+
+from .helpers import RNG, TEST_MJD, TEST_STARS, exercise_map_class, make_simple_map
 
 NUM_POINTS = 10
 
@@ -55,9 +56,7 @@ class TestSphereMap(unittest.TestCase):
         test_points = bokeh.models.ColumnDataSource(data=TEST_STARS)
         for coord in ("x", "y"):
             transform = test_map.proj_transform(coord, test_points)
-            self.assertIsInstance(
-                transform["transform"], bokeh.models.transforms.Transform
-            )
+            self.assertIsInstance(transform["transform"], bokeh.models.transforms.Transform)
 
     def test_eq_to_horizon(self):
         test_map = SphereMap(mjd=TEST_MJD, location="Cerro Pachon")
@@ -81,21 +80,15 @@ class TestSphereMap(unittest.TestCase):
         np.testing.assert_allclose(ra, ref_coord_eq.ra.deg)
         np.testing.assert_allclose(decl, ref_coord_eq.dec.deg)
 
-        test_alt_deg, test_az_deg = test_map.eq_to_horizon(
-            ra, decl, degrees=True, cart=False
-        )
+        test_alt_deg, test_az_deg = test_map.eq_to_horizon(ra, decl, degrees=True, cart=False)
         np.testing.assert_allclose(test_alt_deg, np.degrees(test_alt_rad))
         np.testing.assert_allclose(test_az_deg, np.degrees(test_az_rad))
 
         test_x, test_y = test_map.eq_to_horizon(ra, decl)
         self.assertTrue(np.all(np.isnan(test_x[~visible])))
         self.assertTrue(np.all(np.isnan(test_y[~visible])))
-        np.testing.assert_allclose(
-            np.hypot(test_x, test_y)[visible], np.pi / 2 - test_alt_rad[visible]
-        )
-        np.testing.assert_allclose(
-            np.arctan2(-test_x, test_y)[visible] % (2 * np.pi), test_az_rad[visible]
-        )
+        np.testing.assert_allclose(np.hypot(test_x, test_y)[visible], np.pi / 2 - test_alt_rad[visible])
+        np.testing.assert_allclose(np.arctan2(-test_x, test_y)[visible] % (2 * np.pi), test_az_rad[visible])
 
     def test_make_healpix_data_source(self):
         # Test with a plain healpy array
@@ -136,17 +129,13 @@ class TestSphereMap(unittest.TestCase):
         for _, row in circle_points.to_df().iterrows():
             point = SkyCoord(row.ra * u.deg, row.decl * u.deg, frame="icrs")
             self.assertAlmostEqual(center.separation(point).deg, test_radius)
-            self.assertAlmostEqual(
-                center.position_angle(point).deg % 360, row.bearing % 360
-            )
+            self.assertAlmostEqual(center.position_angle(point).deg % 360, row.bearing % 360)
 
     def test_make_horizon_circle_points(self):
         test_map = SphereMap(mjd=TEST_MJD)
         test_alt, test_az = 88.0, -2.2
         test_radius = 65.0
-        circle_points = test_map._make_horizon_circle_points(
-            test_alt, test_az, test_radius
-        )
+        circle_points = test_map._make_horizon_circle_points(test_alt, test_az, test_radius)
         self.assertIsInstance(circle_points, bokeh.models.ColumnDataSource)
 
     def test_make_points(self):
@@ -240,9 +229,7 @@ class TestSphereMap(unittest.TestCase):
 
     def test_add_marker(self):
         test_map = SphereMap(mjd=TEST_MJD)
-        test_map.add_marker(
-            ra=TEST_STARS["ra"], decl=TEST_STARS["decl"], name=TEST_STARS["name"]
-        )
+        test_map.add_marker(ra=TEST_STARS["ra"], decl=TEST_STARS["decl"], name=TEST_STARS["name"])
 
     def test_make_patches_data_source(self):
         patch1_ra = [30, 30, 50, 50]

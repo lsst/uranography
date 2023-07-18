@@ -1,10 +1,11 @@
 import unittest
+
 import uranography.readjs
 
 JS_FNAME = "update.js"
 
 
-class Test_update_js(unittest.TestCase):
+class TestUpdateJs(unittest.TestCase):
     def test_update_js(self):
         js_code = uranography.readjs.read_javascript(JS_FNAME)
         self.assertGreater(len(js_code), 10)

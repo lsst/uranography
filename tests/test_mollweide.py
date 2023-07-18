@@ -1,8 +1,11 @@
 import unittest
-import healpy as hp
+
 import bokeh
+import healpy as hp
+
 from uranography.api import MollweideMap
-from .helpers import exercise_map_class, RNG, TEST_MJD
+
+from .helpers import RNG, TEST_MJD, exercise_map_class
 
 
 class TestMollweideMap(unittest.TestCase):
