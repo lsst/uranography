@@ -14,7 +14,7 @@ Each of these classes includes:
 - ``bokeh`` `transforms <https://docs.bokeh.org/en/latest/docs/reference/transform.html>`_ that apply the map projection in the client. By using ``bokeh`` client-side transforms to handle map projections, ``sphremap`` supports the application and interactive adjustment of map projection parameters without commutication with a server (or ``python`` process of any sort). This means that updates to projections (e.g. with a control slider in a web page) do not incur any overhead for communication with a server, thereby allowing smooth motion and interaction even with slow network connections. Furthermore, plots can be saved as strings and either loaded into browsers direcly from disk, or embedded into other web pages, and the plots will remain active and interactive even if ``python`` process that produced the plots no longer exists.
 - Methods for plotting `healpix <https://healpix.jpl.nasa.gov/>`_ and `healsparse <https://github.com/LSSTDESC/healsparse>`_ arrays.
 - Methods for adding a variety of features commonly used in maps of the sky, including:
-  
+
   - graticules in equatorial coordinates (R.A. and declination),
   - graticules in horizon coordinates (altitude and azimuth),
   - the ecliptic plane,
