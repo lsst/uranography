@@ -9,7 +9,7 @@ readme = "README.md"
 authors = [
     {name="Eric H. Neilsen, Jr.", email="neilsen@fnal.gov"},
 ]
-classifiers = [ 
+classifiers = [
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
@@ -56,7 +56,7 @@ __version__ = "{version}"
 
 [tool.black]
 line-length = 110
-target-version = ["py310"]
+target-version = ["py311"]
 
 [tool.isort]
 profile = "black"
@@ -91,7 +91,7 @@ select = [
     "W",  # pycodestyle
     #"D",  # pydocstyle
 ]
-target-version = "py310"
+target-version = "py311"
 extend-select = [
     "RUF100", # Warn about unused noqa
 ]
