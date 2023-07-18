@@ -38,9 +38,7 @@ def offset_sep_bear(ra, decl, sep, bearing, degrees=False):  # pylint: disable=C
 
     np_sep = np.pi / 2 - decl
 
-    new_np_sep = np.arccos(
-        np.cos(np_sep) * np.cos(sep) + np.sin(np_sep) * np.sin(sep) * np.cos(bearing)
-    )
+    new_np_sep = np.arccos(np.cos(np_sep) * np.cos(sep) + np.sin(np_sep) * np.sin(sep) * np.cos(bearing))
     new_decl = np.pi / 2 - new_np_sep
 
     # use tan = sin/cos, sin rule to get sin, cos rule to get cos,

@@ -1,6 +1,8 @@
 import unittest
+
 from uranography.api import Planisphere
-from .helpers import exercise_map_class, TEST_MJD
+
+from .helpers import TEST_MJD, exercise_map_class
 
 
 class TestPlanisphere(unittest.TestCase):
@@ -16,9 +18,7 @@ class TestPlanisphere(unittest.TestCase):
         self.assertEqual(north_map.laea_rot, (0, 90, 180))
 
     def test_laea_limit(self):
-        south_map = Planisphere(
-            mjd=TEST_MJD, location="Cerro Pachon", laea_limit_mag=88.0
-        )
+        south_map = Planisphere(mjd=TEST_MJD, location="Cerro Pachon", laea_limit_mag=88.0)
         self.assertEqual(south_map.laea_limit, 88)
 
         north_map = Planisphere(mjd=TEST_MJD, location="APO", laea_limit_mag=88.0)

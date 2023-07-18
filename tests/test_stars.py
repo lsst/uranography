@@ -1,4 +1,5 @@
 import unittest
+
 from uranography.stars import load_bright_stars
 
 

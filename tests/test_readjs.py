@@ -1,4 +1,5 @@
 import unittest
+
 import uranography.readjs
 
 JS_FNAME = "update.js"

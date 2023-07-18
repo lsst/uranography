@@ -1,9 +1,9 @@
 """Tool for computing an outline of a camera footprint."""
 
+import astropy.units as u
 import numpy as np
 import pandas as pd
 from astropy.coordinates import SkyCoord
-import astropy.units as u
 
 
 class CameraFootprintPerimeter(object):
@@ -23,14 +23,10 @@ class CameraFootprintPerimeter(object):
             The camera footprint instance
         """
 
-        self.vertices = pd.read_csv(
-            file_name, delim_whitespace=True, header=0, index_col=False
-        )
+        self.vertices = pd.read_csv(file_name, delim_whitespace=True, header=0, index_col=False)
 
         if "angle" not in self.vertices.columns:
-            self.vertices["angle"] = np.degrees(
-                np.arctan2(self.vertices.y, self.vertices.x)
-            )
+            self.vertices["angle"] = np.degrees(np.arctan2(self.vertices.y, self.vertices.x))
 
         if "r" not in self.vertices.columns:
             self.vertices["r"] = np.hypot(self.vertices.y, self.vertices.x)
@@ -97,9 +93,7 @@ class CameraFootprintPerimeter(object):
 
         vertex_ras, vertex_decls = [], []
         for this_ra, this_decl, this_rotation in zip(ra, decl, rotation):
-            this_vertex_ra, this_vertex_decl = self.single_eq_vertices(
-                this_ra, this_decl, this_rotation
-            )
+            this_vertex_ra, this_vertex_decl = self.single_eq_vertices(this_ra, this_decl, this_rotation)
             vertex_ras.append(this_vertex_ra)
             vertex_decls.append(this_vertex_decl)
 

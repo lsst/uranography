@@ -1,12 +1,12 @@
 """Interactive sky map that works like an armillary sphere.
 """
+import bokeh
 import numpy as np
 import panel as pn
-import bokeh
 from IPython.display import display
 
-from .spheremap import MovingSphereMap
 from .sphere import rotate_cart
+from .spheremap import MovingSphereMap
 
 
 class ArmillarySphere(MovingSphereMap):
@@ -59,17 +59,13 @@ class ArmillarySphere(MovingSphereMap):
             Orthographic z coordinate (positive toward the viewer)
         """
         x1, y1, z1 = rotate_cart(0, 0, 1, -90, hpx, hpy, hpz)  # pylint: disable=C0103
-        x2, y2, z2 = rotate_cart(  # pylint: disable=C0103
-            1, 0, 0, self.location.lat.deg + 90, x1, y1, z1
-        )
+        x2, y2, z2 = rotate_cart(1, 0, 0, self.location.lat.deg + 90, x1, y1, z1)  # pylint: disable=C0103
 
         npole_x1, npole_y1, npole_z1 = rotate_cart(0, 0, 1, -90, 0, 0, 1)
         npole_x2, npole_y2, npole_z2 = rotate_cart(
             1, 0, 0, self.location.lat.deg + 90, npole_x1, npole_y1, npole_z1
         )
-        x3, y3, z3 = rotate_cart(  # pylint: disable=C0103
-            npole_x2, npole_y2, npole_z2, -self.lst, x2, y2, z2
-        )
+        x3, y3, z3 = rotate_cart(npole_x2, npole_y2, npole_z2, -self.lst, x2, y2, z2)  # pylint: disable=C0103
 
         # x3, y3, z3 have the center right, now rotate it so that north is "up"
         # the 2-3 transform is about the axis through the n pole, so
@@ -81,9 +77,7 @@ class ArmillarySphere(MovingSphereMap):
         orient = np.degrees(np.arctan2(npole_y3, npole_x3))
 
         # To the n pole on the y axis, we must rotate it the rest of the 90 deg
-        x4, y4, z4 = rotate_cart(  # pylint: disable=C0103
-            0, 0, 1, 90 - orient, x3, y3, z3
-        )
+        x4, y4, z4 = rotate_cart(0, 0, 1, 90 - orient, x3, y3, z3)  # pylint: disable=C0103
 
         # In astronomy, we are looking out of the sphere from the center to the
         # back (which naturally results in west to the right).
@@ -113,11 +107,7 @@ class ArmillarySphere(MovingSphereMap):
     def _add_projection_columns(self, hpix, nside=None, projector=None):
         """Adds pre-calculated projection columns for this projection."""
         hp_vec_cols = ["x_hp", "y_hp", "z_hp"]
-        corners = (
-            hpix.to_df()
-            .loc[:, ["hpid"] + hp_vec_cols]
-            .explode(column=hp_vec_cols, ignore_index=True)
-        )
+        corners = hpix.to_df().loc[:, ["hpid"] + hp_vec_cols].explode(column=hp_vec_cols, ignore_index=True)
         corners["x_orth"], corners["y_orth"], corners["z_orth"] = self.to_orth_zenith(
             corners["x_hp"], corners["y_hp"], corners["z_hp"]
         )

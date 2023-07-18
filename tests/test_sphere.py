@@ -1,9 +1,8 @@
 import unittest
 
-import numpy as np
 import healpy as hp
+import numpy as np
 from astropy.coordinates import SkyCoord
-
 from numpy.random import default_rng
 
 from uranography import sphere
@@ -40,9 +39,7 @@ class test_sphere(unittest.TestCase):
             separation = coords[0].separation(coords[1]).deg
             bearing = coords[0].position_angle(coords[1]).deg
 
-            test_ra, test_decl = sphere.offset_sep_bear(
-                ra[0], decl[0], separation, bearing, degrees=True
-            )
+            test_ra, test_decl = sphere.offset_sep_bear(ra[0], decl[0], separation, bearing, degrees=True)
 
             self.assertAlmostEqual(test_ra % 360, ra[1] % 360)
             self.assertAlmostEqual(test_decl % 360, decl[1] % 360)
@@ -66,11 +63,7 @@ class test_sphere(unittest.TestCase):
             vec0 = _random_point_on_sphere(rng)
             axis = _random_point_on_sphere(rng)
             angle = rng.uniform(-360, 360)
-            vec1 = np.array(
-                sphere.rotate_cart(
-                    axis[0], axis[1], axis[2], angle, vec0[0], vec0[1], vec0[2]
-                )
-            )
+            vec1 = np.array(sphere.rotate_cart(axis[0], axis[1], axis[2], angle, vec0[0], vec0[1], vec0[2]))
             self.assertAlmostEqual(np.linalg.norm(vec1), 1.0)
             self.assertAlmostEqual(axis.dot(vec0), axis.dot(vec1))
 

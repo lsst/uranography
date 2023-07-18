@@ -3,6 +3,7 @@
 
 import healpy as hp
 import numpy as np
+
 from .spheremap import SphereMap
 
 
@@ -28,9 +29,7 @@ class Planisphere(SphereMap):
     transform_js_call = "return laeaTransform()"
     default_title = "Planisphere"
 
-    def __init__(
-        self, plot=None, mjd=None, location="Cerro Pachon", laea_limit_mag=88.0
-    ):
+    def __init__(self, plot=None, mjd=None, location="Cerro Pachon", laea_limit_mag=88.0):
         super().__init__(plot, mjd, location)
         self.laea_limit_mag = laea_limit_mag
 
@@ -56,11 +55,7 @@ class Planisphere(SphereMap):
             The maximum (or minimum) value for the latitude shown in the
             Lambert Azimuthal Equal Area plot.
         """
-        limit = (
-            self.laea_limit_mag
-            if self.location.lat.deg < 0
-            else -1 * self.laea_limit_mag
-        )
+        limit = self.laea_limit_mag if self.location.lat.deg < 0 else -1 * self.laea_limit_mag
         return limit
 
     def _add_projection_columns(self, hpix, nside, projector=None):
