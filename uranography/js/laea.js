@@ -24,7 +24,7 @@ function laeaTransform() {
     if (xs.length == 0) {
         return result
     }
-    
+
     const coord_idx = (proj_coord == 'x') ? 0 : 1
 
     for (let i = 0; i < ra.length; i++) {

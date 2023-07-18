@@ -9,7 +9,7 @@ readme = "README.md"
 authors = [
     {name="Eric H. Neilsen, Jr.", email="neilsen@fnal.gov"},
 ]
-classifiers = [ 
+classifiers = [
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
@@ -38,10 +38,6 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "pytest",
-    "black",
-    "pytest-black",
-    "flake8 < 5",
-    "pytest-flake8",
 ]
 
 [tool.setuptools.dynamic]
@@ -58,9 +54,89 @@ __all__ = ["__version__"]
 __version__ = "{version}"
 """
 
-[tool.pytest.ini_options]
-addopts = "--flake8 --black --ignore-glob=*/version.py"
-flake8-ignore = ["E133", "E203", "E226", "E228", "N802", "N803", "N806", "N812", "N813", "N815", "N816", "W503", "**/*/__init__.py ALL", "**/*/version.py ALL"]
-flake8-max-line-length = 110
-flake8-max-doc-length = 79
-testpaths = "."
+[tool.black]
+line-length = 110
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 110
+
+[tool.ruff]
+exclude = [
+    "__init__.py",
+]
+ignore = [
+    "N802",
+    "N803",
+    "N806",
+    "N812",
+    "N815",
+    "N816",
+    "N999",
+    "D107",
+    "D105",
+    "D102",
+    "D104",
+    "D100",
+    "D200",
+    "D205",
+    "D400",
+]
+line-length = 110
+select = [
+    "E",  # pycodestyle
+    "F",  # pyflakes
+    "N",  # pep8-naming
+    "W",  # pycodestyle
+    #"D",  # pydocstyle
+]
+target-version = "py311"
+extend-select = [
+    "RUF100", # Warn about unused noqa
+]
+
+[tool.ruff.pycodestyle]
+max-doc-length = 79
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
+
+[tool.towncrier]
+    package = "uranography"
+    package_dir = "python"
+    filename = "docs/uranography/CHANGES.rst"
+    directory = "docs/changes"
+    title_format = "uranography {version} ({project_date})"
+    issue_format = "`{issue} <https://jira.lsstcorp.org/browse/{issue}>`_"
+
+
+    [[tool.towncrier.type]]
+        directory = "feature"
+        name = "New Features"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "api"
+        name = "API Changes"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "bugfix"
+        name = "Bug Fixes"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "perf"
+        name = "Performance Enhancement"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "misc"
+        name = "Other Changes and Additions"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "removal"
+        name = "An API Removal or Deprecation"
+        showcontent = true

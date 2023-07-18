@@ -12,7 +12,7 @@ function hpTransform() {
     if (xs.length == 0) {
         return new Array(xs.length)
     }
-    
+
     const x_hp = new Array(ra.length)
     const y_hp = new Array(ra.length)
     const z_hp = new Array(ra.length)

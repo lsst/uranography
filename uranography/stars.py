@@ -1,7 +1,8 @@
 """Load the Yale Bright Star catalog into a pandas.DataFrame."""
 
-from collections import OrderedDict
 import os
+from collections import OrderedDict
+
 import pandas as pd
 
 BSC5_URL = "http://tdc-www.harvard.edu/catalogs/bsc5.dat.gz"
@@ -53,11 +54,8 @@ def load_bright_stars(fname=None):
         bright_stars.RA_hour + (bright_stars.RA_min + bright_stars.RA_sec / 60.0) / 60.0
     )
     bright_stars["decl"] = (
-        bright_stars.decl_deg
-        + (bright_stars.decl_min + bright_stars.decl_sec / 60.0) / 60.0
+        bright_stars.decl_deg + (bright_stars.decl_min + bright_stars.decl_sec / 60.0) / 60.0
     )
     southern_stars = bright_stars.decl_sign == "-"
-    bright_stars.loc[southern_stars, "decl"] = (
-        -1 * bright_stars.loc[southern_stars, "decl"]
-    )
+    bright_stars.loc[southern_stars, "decl"] = -1 * bright_stars.loc[southern_stars, "decl"]
     return bright_stars

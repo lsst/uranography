@@ -5,7 +5,7 @@ Introduction
 ------------
 
 ``uranography`` is a collection of classes that supply tools for making
-``bokeh`` plots of data on the celestial sphere. It is primarily intended for 
+``bokeh`` plots of data on the celestial sphere. It is primarily intended for
 use in interactive environments such as jupyter notebooks or dashboards. For
 instructions on using it in such envirenments, see the example notebook,
 ``uranography.ipynb``, in the ``notebooks`` directory of the repository.
@@ -106,7 +106,7 @@ than a interactive html.
 .. code-block:: python
 
  import bokeh
- 
+
  plot = bokeh.plotting.figure(
      plot_width=256,
      plot_height=256,
@@ -135,12 +135,12 @@ Plotting a healpix map
 
  import healpy as hp
  from uranography.api import MollweideMap
- 
+
  dust = hp.read_map(
      #    "https://lambda.gsfc.nasa.gov/data/foregrounds/SFD/lambda_sfd_ebv.fits"
      "lambda_sfd_ebv.fits"
  )
- 
+
  plot = bokeh.plotting.figure(
      plot_width=512,
      plot_height=256,
@@ -238,7 +238,7 @@ the positions to be updated when the sliders are adjusted.
      sky.x_transform("coords"),
      sky.y_transform("coords"),
      source=stars,
- ) 
+ )
 
  sky.connect_controls(stars)
  sky.add_horizon_graticules()

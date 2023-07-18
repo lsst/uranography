@@ -16,5 +16,5 @@ fqdn
 arrow
 isoduration
 selenium
-firefox 
+firefox
 geckodriver

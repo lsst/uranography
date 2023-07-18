@@ -1,9 +1,10 @@
-from tempfile import TemporaryDirectory
 from pathlib import Path
-import numpy as np
-import healpy as hp
-import pandas as pd
+from tempfile import TemporaryDirectory
+
 import bokeh.io
+import healpy as hp
+import numpy as np
+import pandas as pd
 
 TEST_MJD = 60300
 RNG = np.random.default_rng(seed=6563)
@@ -35,9 +36,7 @@ def exercise_map_class(MapClass):
     test_map.add_healpix(hpdata, nside=nside)
     test_map.decorate()
     test_map.add_horizon()
-    test_map.add_marker(
-        30, 10, name="Something", glyph_size=15, circle_kwargs={"color": "orange"}
-    )
+    test_map.add_marker(30, 10, name="Something", glyph_size=15, circle_kwargs={"color": "orange"})
 
     stars = pd.DataFrame(TEST_STARS)
     test_map.add_stars(stars)

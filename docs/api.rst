@@ -30,5 +30,3 @@ API
 
 .. automodule:: uranography.stars
     :members:
-
-

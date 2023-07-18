@@ -14,7 +14,7 @@ and the othrogrophic projection simulates an [armillary sphere](https://en.wikip
 
 The `uranography` module includes tools to produce:
 - `bokeh` [`transforms`](https://docs.bokeh.org/en/latest/docs/reference/transform.html) that apply the map projection in the client.
-- projections of [`healpix`](https://healpix.jpl.nasa.gov/) and [healsparse](https://github.com/LSSTDESC/healsparse) arrays.  
+- projections of [`healpix`](https://healpix.jpl.nasa.gov/) and [healsparse](https://github.com/LSSTDESC/healsparse) arrays.
 - graticules in equatorial coordinates (R.A. and declination),
 - graticules in horizon coordinates (altitude and azimuth),
 - the ecliptic plane,

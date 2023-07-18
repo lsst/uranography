@@ -1,12 +1,15 @@
 import unittest
+
+import astropy.units as u
+import bokeh
 import healpy as hp
 import numpy as np
-import bokeh
-from astropy.coordinates import SkyCoord, AltAz
+from astropy.coordinates import AltAz, SkyCoord
 from astropy.time import Time
-import astropy.units as u
+
 from uranography.api import ArmillarySphere
-from .helpers import exercise_map_class, RNG, TEST_MJD, make_simple_map
+
+from .helpers import RNG, TEST_MJD, exercise_map_class, make_simple_map
 
 
 class TestArmillarySphere(unittest.TestCase):

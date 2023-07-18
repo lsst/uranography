@@ -1,8 +1,11 @@
 import unittest
-import healpy as hp
+
 import bokeh
+import healpy as hp
+
 from uranography.api import HorizonMap
-from .helpers import exercise_map_class, RNG, TEST_MJD, make_simple_map
+
+from .helpers import RNG, TEST_MJD, exercise_map_class, make_simple_map
 
 
 class TestHorizonMap(unittest.TestCase):
