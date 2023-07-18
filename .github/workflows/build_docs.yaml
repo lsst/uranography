@@ -41,8 +41,6 @@ jobs:
         shell: bash -l {0}
         run: |
           conda list
-          echo `which python`
-          echo `which package-docs`
 
       - name: build docs
         shell: bash -l {0}
