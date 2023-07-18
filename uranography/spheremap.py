@@ -151,7 +151,7 @@ class SphereMap:
         if len(cmap_transform) == 0 and self._hpix_cmap is not None:
             cmap = self._hpix_cmap
         else:
-            cmap = {"field": "value", "transform": cmap_transform}
+            cmap = {"field": "value", "transform": cmap_transform[0]}
         return cmap
 
     @property
