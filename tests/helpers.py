@@ -5,6 +5,8 @@ import bokeh.io
 import healpy as hp
 import numpy as np
 import pandas as pd
+from selenium import webdriver
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 
 TEST_MJD = 60300
 RNG = np.random.default_rng(seed=6563)
@@ -44,7 +46,13 @@ def exercise_map_class(MapClass):
     with TemporaryDirectory() as test_dir:
         out_path = Path(test_dir)
         png_fname = out_path.joinpath("test_plot.png")
-        bokeh.io.export_png(test_map.figure, filename=png_fname)
+
+        firefox_binary = FirefoxBinary()
+        firefox_options = webdriver.FirefoxOptions()
+        firefox_options.add_argument("-headless")
+        firefox_options.binary = firefox_binary
+        firefox_webdriver = webdriver.Firefox(options=firefox_options)
+        bokeh.io.export_png(test_map.figure, filename=png_fname, webdriver=firefox_webdriver)
 
 
 def make_simple_map(cls):
