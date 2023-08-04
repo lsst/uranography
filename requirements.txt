@@ -15,6 +15,6 @@ jsonpointer
 fqdn
 arrow
 isoduration
-selenium
+selenium = 4.10.0
 firefox
 geckodriver
