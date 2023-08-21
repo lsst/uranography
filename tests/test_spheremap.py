@@ -8,6 +8,7 @@ import healpy as hp
 import numpy as np
 import pandas as pd
 import panel as pn
+import pytest
 from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.time import Time
 
@@ -174,7 +175,7 @@ class TestSphereMap(unittest.TestCase):
         slider = test_map.sliders["mjd"]
         self.assertTrue(slider.start < TEST_MJD < slider.end)
 
-    def test_add_date_time_sliders(self):
+    def test_okay_add_date_time_sliders(self):
         test_map = SphereMap(mjd=TEST_MJD)
         test_map.add_mjd_slider()
         test_map.add_date_time_sliders()
@@ -187,6 +188,23 @@ class TestSphereMap(unittest.TestCase):
         # the UTC date changes during the night.
         self.assertTrue(hour_slider.start <= 0)
         self.assertTrue(hour_slider.start < hour_slider.end <= 48)
+
+    def test_add_date_time_sliders_without_mjd(self):
+        test_map = SphereMap(mjd=TEST_MJD)
+        try:
+            test_map.add_date_time_sliders()
+            threw_exception = False
+        except ValueError:
+            threw_exception = True
+
+        assert threw_exception
+
+    def test_add_date_time_sliders_multiply_called(self):
+        test_map = SphereMap(mjd=TEST_MJD)
+        test_map.add_mjd_slider()
+        test_map.add_date_time_sliders()
+        with pytest.warns(UserWarning):
+            test_map.add_date_time_sliders()
 
     def test_set_js_update_func(self):
         test_points, test_map = make_simple_map(SphereMap)
