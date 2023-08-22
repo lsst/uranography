@@ -933,6 +933,98 @@ class SphereMap:
 
             self.visible_slider_names.append("mjd")
 
+    def add_date_time_sliders(self):
+        """Add sliders for the date and time."""
+        if "mjd" not in self.sliders:
+            raise ValueError("You must add the mjd slider before the date and time sliders.")
+
+        if "night_date" in self.sliders or "hour_minute" in self.sliders:
+            warn("Date and time sliders already added. Skipping.")
+            return
+
+        self.sliders["night_date"] = bokeh.models.DateSlider(
+            start=Time(np.floor(self.sliders["mjd"].start), format="mjd").datetime,
+            end=Time(np.ceil(self.sliders["mjd"].end) - 1, format="mjd").datetime,
+            value=Time(self.sliders["mjd"].value, format="mjd").datetime,
+            name="night_date_slider",
+            step=1,
+            format="%Y-%m-%d",
+            title="Date (UTC)",
+        )
+
+        hour_minute_formatter = bokeh.models.CustomJSTickFormatter(
+            code="""
+            if (tick >= 0) {
+                const hour = Math.floor(tick)
+                const minute = Math.floor(60*(tick-hour))
+                return String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0")
+            } else {
+                const neg_tick = -1 * tick
+                const hour = Math.floor(neg_tick)
+                const minute = Math.floor(60*(neg_tick-hour))
+                return "-" + String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0")
+            }
+            """
+        )
+
+        self.sliders["hour"] = bokeh.models.Slider(
+            start=0.0,
+            end=23.75,
+            value=(self.sliders["mjd"].value * 24) % 24,
+            name="hour",
+            step=0.25,
+            format=hour_minute_formatter,
+            title="Time (UTC)",
+        )
+
+        # When the date or hour sliders are moved,
+        # adjust the MJD slider to match
+        match_mjd_to_date_and_hour_callback = bokeh.models.CustomJS(
+            args=dict(
+                night_date=self.sliders["night_date"],
+                hour=self.sliders["hour"],
+                mjd_slider=self.sliders["mjd"],
+            ),
+            code="""
+            const time_part = mjd_slider.value % 1
+            const new_mjd = 40587 + Math.round(night_date.value/86400000) + hour.value/24.0
+
+            // Only update if there is a significant change to avoid looping callbacks
+            if (Math.abs(new_mjd - mjd_slider.value) >= 1./(24*60)) {
+                mjd_slider.value  = 40587 + Math.round(night_date.value/86400000) + hour.value/24.0
+            }
+        """,
+        )
+        self.sliders["night_date"].js_on_change("value", match_mjd_to_date_and_hour_callback)
+        self.sliders["hour"].js_on_change("value", match_mjd_to_date_and_hour_callback)
+
+        # When the mjd slider is moved,
+        # adjust the date and hour sliders to match
+        match_night_and_hour_to_mjd_callback = bokeh.models.CustomJS(
+            args=dict(
+                night_date=self.sliders["night_date"],
+                hour=self.sliders["hour"],
+                mjd_slider=self.sliders["mjd"],
+            ),
+            code="""
+            const date_part = Math.floor(mjd_slider.value)
+            const new_night_date = (date_part - 40587)*86400000
+            const new_hour = (mjd_slider.value - date_part) * 24
+
+            // Only update if there is a significant change
+            if (Math.abs(night_date.value - new_night_date) >= 1) {
+                night_date.value = (date_part - 40587)*86400000
+            }
+            if (Math.abs(hour.value - new_hour) >= 2.0/60.0) {
+                hour.value = (mjd_slider.value - date_part) * 24
+            }
+        """,
+        )
+        self.sliders["mjd"].js_on_change("value", match_night_and_hour_to_mjd_callback)
+
+        self.visible_slider_names.append("night_date")
+        self.visible_slider_names.append("hour")
+
     def _create_js_update_func(self, data_source):
         """Set the javascript update functions for each slider
 
