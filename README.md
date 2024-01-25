@@ -3,7 +3,8 @@
 [![pypi](https://img.shields.io/pypi/v/uranography.svg)](https://pypi.org/project/uranography/)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/uranography.svg)](https://anaconda.org/conda-forge/uranography) <br>
 [![Build and Publish PyPI](https://github.com/lsst/uranography/actions/workflows/build.yaml/badge.svg)](https://github.com/lsst/uranography/actions/workflows/build.yaml)
-[![codecov](https://codecov.io/gh/lsst/uranography/branch/main/graph/badge.svg?token=2BUBL8R9RH)](https://codecov.io/gh/lsst/uranography)
+[![Build and Upload Docs](https://github.com/lsst/uranography/actions/workflows/build_docs.yaml/badge.svg)](https://github.com/lsst/uranography/actions/workflows/build_docs.yaml)
+
 
 
 ## Description
