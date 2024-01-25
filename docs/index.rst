@@ -17,5 +17,4 @@ Contents
    installation
    usage
    tutorials
-   architecture
    api

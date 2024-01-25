@@ -46,7 +46,7 @@ jobs:
         shell: bash -l {0}
         run: |
           cd docs
-          package-docs build
+          make html
 
       - name: upload documentation
         uses: lsst-sqre/ltd-upload@v1
