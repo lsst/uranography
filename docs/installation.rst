@@ -6,15 +6,22 @@ Quick Installation
 ------------------
 
 Installation from PyPI:
-``pip install uranography``
 
-coming soon: ``conda install -c conda-forge uranography``
+::
+
+   pip install uranography
+
+Or conda-forge:
+
+::
+
+   conda install -c conda-forge uranography
 
 
 For Developer Use
 -----------------
 
-First, clone the `uranography` repository:
+First, clone the ``uranography`` repository:
 
 ::
 
@@ -37,11 +44,11 @@ If you want to run tests, install the test requirements as well:
  conda install -c conda-forge --file=test-requirements.txt
 
 
-Install the `uranography` project into this environment (from the uranography directory):
+Install the ``uranography`` project into this environment (from the uranography directory):
 
 ::
 
- pip install -e .
+ pip install -e . --no-deps
 
 
 In order to make uranography available in jupyter,
@@ -69,7 +76,7 @@ however building a local copy can be done as follows:
 
  pip install "documenteer[guide]"
  cd docs
- package-docs build
+ make html
 
 
-The root of the local documentation will then be `docs/_build/html/index.html`.
+The root of the local documentation will then be ``docs/_build/html/index.html``.
