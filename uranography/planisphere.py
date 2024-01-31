@@ -1,6 +1,5 @@
 """Interactive planisphere (Lambert Azimuthal Equal Area projection)."""
 
-
 import healpy as hp
 import numpy as np
 

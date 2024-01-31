@@ -44,6 +44,9 @@ jobs:
       - name: conda list
         shell: bash -l {0}
         run: conda list
+      - name: black format test
+        shell: bash -l {0}
+        run: black --check .
       - name: run unit tests
         shell: bash -l {0}
         run: |

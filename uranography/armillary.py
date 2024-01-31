@@ -1,5 +1,6 @@
 """Interactive sky map that works like an armillary sphere.
 """
+
 import bokeh
 import numpy as np
 import panel as pn
