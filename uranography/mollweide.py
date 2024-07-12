@@ -51,7 +51,7 @@ class MollweideMap(SphereMap):
                 # Remember, we are looking out from the Earth, so
                 # positive RA is left, negative right
                 if np.sign(x) == center_ra_sign:
-                    hpix.data["x_moll"][i][j] = np.NaN
-                    hpix.data["y_moll"][i][j] = np.NaN
+                    hpix.data["x_moll"][i][j] = np.nan
+                    hpix.data["y_moll"][i][j] = np.nan
 
         return hpix
