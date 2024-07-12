@@ -32,7 +32,7 @@ jobs:
       - name: configure conda and install requirements
         shell: bash -l {0}
         run: |
-          mamba config --set always_yes yes
+          conda config --set always_yes yes
           mamba install --quiet --file=requirements.txt
           mamba install --quiet --file=test-requirements.txt
 
