@@ -1,6 +1,7 @@
 """Base classes for sky maps made using bokeh.
 """
 
+import re
 import time
 import uuid
 from collections import OrderedDict, namedtuple
@@ -1171,6 +1172,64 @@ class SphereMap:
         hp_glyph = hpgr.glyph
 
         return data_source, cmap, hp_glyph
+
+    def add_hp_hovertool(
+        self,
+        coordinates=True,
+        value="Value",
+        ds_name="hpix_ds",
+        renderer_name="hpix_renderer",
+        extra_data=None,
+        name="hpix_hovertool",
+    ):
+        """Add a hovertool to an existing healpix map
+
+        Parameters
+        ----------
+        coordinates : `bool`, optional
+            Show the coordinates in the hovertool, by default True
+        value : `str`, optional
+            Label for the healpix value in the hovertool, by default "Value"
+        ds_name : `str`, optional
+            Bokeh data source name for the healpix map, by default "hpix_ds"
+            (which is the default for add_healpix)
+        renderer_name : `str`, optional
+            Bokeh data source name for the healpix renderer,
+            by default "hpix_renderer", (which is the default for add_healpix).
+        extra_data : `dict`, optional
+            A dictionary of healpix arrays with additional values to be
+            included in the hoverplot. The keys will be the labels for those
+            values. By default None (for no extra data).
+        name : `str`, optional
+            The bokeh name for the hovertool, by default "hpix_hovertool"
+
+        Returns
+        -------
+        hovertool: `bokeh.models.Hovertool`
+            The new hovertool instance.
+        """
+        if extra_data is None:
+            extra_data = {}
+
+        hpix_datasource = self.plot.select(name=ds_name)[0]
+        hpix_renderer = self.plot.select(name=renderer_name)[0]
+        shown_hpix_data = dict(hpix_datasource.data)
+        shown_hpids = shown_hpix_data["hpid"]
+        tooltips = [("RA", "@center_ra"), ("Decl", "@center_decl")] if coordinates else []
+        if value is not None:
+            tooltips.append((value, "@value"))
+
+        for key in extra_data:
+            if re.match(r".*(\ |\.|\@).*", key):
+                warn(f'Not adding {key} to hovertool because "{key}" is not a valid bokeh column name')
+                continue
+            shown_hpix_data[key] = extra_data[key][shown_hpids]
+            tooltips.append((key, f"@{key}"))
+
+        hpix_datasource.data = shown_hpix_data
+        hover_tool = bokeh.models.HoverTool(renderers=[hpix_renderer], tooltips=tooltips, name=name)
+        self.plot.tools.append(hover_tool)
+        return hover_tool
 
     def add_graticules(self, graticule_kwargs=None, line_kwargs=None):
         """Add graticules to the map
