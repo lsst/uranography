@@ -243,6 +243,36 @@ class TestSphereMap(unittest.TestCase):
 
         test_map_2.add_healpix(hpvalues, cmap, nside=nside, bound_step=2)
 
+    def test_add_hp_hovertool(self):
+        nside = 4
+        npix = hp.nside2npix(nside)
+        values = RNG.random(npix)
+
+        # Test with just defaults
+        test_map = SphereMap(mjd=TEST_MJD)
+        data_source, cmap, hp_glyph = test_map.add_healpix(values, nside=nside)
+        test_map.add_hp_hovertool()
+
+        # Test without coordinates
+        test_map = SphereMap(mjd=TEST_MJD)
+        data_source, cmap, hp_glyph = test_map.add_healpix(values, nside=nside)
+        test_map.add_hp_hovertool(coordinates=False)
+
+        # Test with different values name
+        test_map = SphereMap(mjd=TEST_MJD)
+        data_source, cmap, hp_glyph = test_map.add_healpix(values, nside=nside)
+        test_map.add_hp_hovertool(value="Foo")
+
+        # Test with extra data
+        extra_data = {
+            "aaa": RNG.random(npix),
+            "bbb": RNG.random(npix),
+            "c.c": RNG.random(npix),
+        }
+        test_map = SphereMap(mjd=TEST_MJD)
+        data_source, cmap, hp_glyph = test_map.add_healpix(values, nside=nside)
+        test_map.add_hp_hovertool(extra_data=extra_data)
+
     def test_add_graticules(self):
         test_map = SphereMap(mjd=TEST_MJD)
         test_map.add_graticules()

@@ -70,7 +70,7 @@ class Planisphere(SphereMap):
                 self.location.lat.deg > 0 and decl < self.laea_limit
             ):
                 for corner_idx in range(len(hpix.data["x_laea"][hp_idx])):
-                    hpix.data["x_laea"][hp_idx][corner_idx] = np.NaN
-                    hpix.data["y_laea"][hp_idx][corner_idx] = np.NaN
+                    hpix.data["x_laea"][hp_idx][corner_idx] = np.nan
+                    hpix.data["y_laea"][hp_idx][corner_idx] = np.nan
 
         return hpix
