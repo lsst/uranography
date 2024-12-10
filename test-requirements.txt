@@ -2,3 +2,4 @@ pytest
 black
 ruff
 pytest-cov
+git
