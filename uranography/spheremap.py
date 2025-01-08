@@ -1421,7 +1421,7 @@ class SphereMap:
             Data source for the marker, None if a new one is to be generated.
             By default, None
         circle_kwargs : dict, optional
-            Keywords to be passed to ``bokeh.plotting.figure.circle``,
+            Keywords to be passed to ``bokeh.plotting.figure.scatter``,
             by default {}
 
         Returns
@@ -1435,10 +1435,13 @@ class SphereMap:
         if "name" not in circle_kwargs:
             circle_kwargs["name"] = "circle_glyph"
 
+        if "marker" not in circle_kwargs:
+            circle_kwargs["marker"] = "circle"
+
         if data_source is None:
             data_source = self._make_marker_data_source(ra, decl, name, glyph_size, min_mjd, max_mjd)
 
-        self.plot.circle(
+        self.plot.scatter(
             x=self.proj_transform("x", data_source),
             y=self.proj_transform("y", data_source),
             size="glyph_size",
