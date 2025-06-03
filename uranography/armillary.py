@@ -1,5 +1,4 @@
-"""Interactive sky map that works like an armillary sphere.
-"""
+"""Interactive sky map that works like an armillary sphere."""
 
 import bokeh
 import numpy as np
@@ -154,14 +153,14 @@ class ArmillarySphere(MovingSphereMap):
         """Add (already defined) sliders to the map."""
         super().add_sliders()
         self.sliders["alt"] = bokeh.models.Slider(
-            start=-90,
-            end=90,
+            start=center_alt - 180,
+            end=center_alt + 180,
             value=center_alt,
             step=np.pi / 180,
             title="center alt",
         )
         self.sliders["az"] = bokeh.models.Slider(
-            start=-90, end=360, value=center_az, step=np.pi / 180, title="center Az"
+            start=center_az - 360, end=center_az + 360, value=center_az, step=np.pi / 180, title="center Az"
         )
         self.sliders["mjd"] = bokeh.models.Slider(
             start=self.mjd - 1,
