@@ -1,5 +1,4 @@
-"""Base classes for sky maps made using bokeh.
-"""
+"""Base classes for sky maps made using bokeh."""
 
 import re
 import time
@@ -1597,7 +1596,8 @@ class SphereMap:
         else:
             star_data_source = data_source
 
-        self.plot.star(
+        self.plot.scatter(
+            marker="star",
             x=self.proj_transform("x", star_data_source),
             y=self.proj_transform("y", star_data_source),
             size="glyph_size",
