@@ -1,5 +1,6 @@
 """Interactive planisphere (Lambert Azimuthal Equal Area projection)."""
 
+import bokeh
 import healpy as hp
 import numpy as np
 
@@ -74,3 +75,80 @@ class Planisphere(SphereMap):
                     hpix.data["y_laea"][hp_idx][corner_idx] = np.nan
 
         return hpix
+
+    def label_ra_graticules(self, graticule_points, **text_kwargs):
+        """Add R.A. graticule labels.
+
+        Parameters
+        ----------
+        graticule_points : `bokeh.models.ColumnDataSource`
+            The data source for the graticules themselves
+        **text_kwargs
+            Additional parameters passed to `bokeh.figure.text`
+        """
+
+        graticules = graticule_points.to_df()
+        ras = np.sort(graticules.loc[graticules["grat"].str.startswith("ra").astype("bool"), "ra"].unique())[
+            :-1
+        ]
+        eps = np.finfo(np.float32).eps
+        for ra in ras:
+            text = f"{ra}\u00b0\n{int(ra/15)} hr"
+            if self.laea_rot[1] < 0:
+                sin_ang, cos_ang = np.sin(np.radians(ra)), np.cos(np.radians(ra))
+                decl = 90 - eps
+            else:
+                sin_ang, cos_ang = np.sin(np.radians(-ra)), np.cos(np.radians(-ra))
+                decl = -90 + eps
+
+            if sin_ang > eps:
+                horizontal_anchor = "right"
+            elif sin_ang < -eps:
+                horizontal_anchor = "left"
+            else:
+                horizontal_anchor = "center"
+
+            if cos_ang < -eps:
+                vertical_anchor = "top"
+            elif cos_ang > eps:
+                vertical_anchor = "bottom"
+            else:
+                vertical_anchor = "center"
+
+            label_ds = bokeh.models.ColumnDataSource({"coords": [(ra, decl)], "text": [text]})
+            self.plot.text(
+                x=self.x_transform("coords"),
+                y=self.y_transform("coords"),
+                text="text",
+                source=label_ds,
+                anchor=f"{vertical_anchor}_{horizontal_anchor}",
+                **text_kwargs,
+            )
+
+    def label_decl_graticules(self, graticule_points, **text_kwargs):
+        """Add declination graticule labels.
+
+        Parameters
+        ----------
+        graticule_points : `bokeh.models.ColumnDataSource`
+            The data source for the graticules themselves
+        **text_kwargs
+            Additional parameters passed to `bokeh.figure.text`
+        """
+
+        graticules = graticule_points.to_df()
+        ra = 135 if self.laea_rot[1] > 0 else 225
+        decls = np.sort(
+            graticules.loc[graticules["grat"].str.startswith("decl").astype("bool"), "decl"].unique()
+        )
+        label_ds = bokeh.models.ColumnDataSource(
+            {"coords": [(ra, d) for d in decls], "text": [f"{d}\u00b0" for d in decls]}
+        )
+        self.plot.text(
+            x=self.x_transform("coords"),
+            y=self.y_transform("coords"),
+            text="text",
+            source=label_ds,
+            anchor="center_center",
+            **text_kwargs,
+        )

@@ -1230,7 +1230,7 @@ class SphereMap:
         self.plot.tools.append(hover_tool)
         return hover_tool
 
-    def add_graticules(self, graticule_kwargs=None, line_kwargs=None):
+    def add_graticules(self, graticule_kwargs=None, line_kwargs=None, label_ra=False, label_decl=False):
         """Add graticules to the map
 
         Parameters
@@ -1262,6 +1262,19 @@ class SphereMap:
             source=graticule_points,
             **kwargs,
         )
+
+        if label_ra:
+            try:
+                self.label_ra_graticules(graticule_points)
+            except AttributeError:
+                raise NotImplementedError
+
+        if label_decl:
+            try:
+                self.label_decl_graticules(graticule_points)
+            except AttributeError:
+                raise NotImplementedError()
+
         return graticule_points
 
     def add_horizon_graticules(self, graticule_kwargs=None, line_kwargs=None):

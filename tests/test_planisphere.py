@@ -12,9 +12,11 @@ class TestPlanisphere(unittest.TestCase):
 
     def test_laea_rot(self):
         south_map = Planisphere(mjd=TEST_MJD, location="Cerro Pachon")
+        south_map.add_graticules(label_ra=True, label_decl=True)
         self.assertEqual(south_map.laea_rot, (0, -90, 0))
 
         north_map = Planisphere(mjd=TEST_MJD, location="APO")
+        north_map.add_graticules(label_ra=True, label_decl=True)
         self.assertEqual(north_map.laea_rot, (0, 90, 180))
 
     def test_laea_limit(self):
