@@ -27,7 +27,7 @@ class Planisphere(SphereMap):
     update_js_command = "updateLAEAData()"
     transform_js_fnames = ("coord_utils.js", "laea.js")
     transform_js_call = "return laeaTransform()"
-    default_title = "Planisphere"
+    default_title = "Lambert azimuthal equal-area projection"
 
     def __init__(self, plot=None, mjd=None, location="Cerro Pachon", laea_limit_mag=88.0):
         super().__init__(plot, mjd, location)

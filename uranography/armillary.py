@@ -29,7 +29,7 @@ class ArmillarySphere(MovingSphereMap):
     transform_js_fnames = ("coord_utils.js", "orthographic.js")
     transform_js_call = "return orthoTransform()"
     proj_slider_keys = ["alt", "az", "mjd"]
-    default_title = "Armillary Sphere"
+    default_title = "Orthographic projection"
 
     def to_orth_zenith(self, hpx, hpy, hpz):
         """Convert healpy vector coordinates to orthographic coordinates
@@ -153,14 +153,18 @@ class ArmillarySphere(MovingSphereMap):
         """Add (already defined) sliders to the map."""
         super().add_sliders()
         self.sliders["alt"] = bokeh.models.Slider(
-            start=center_alt - 180,
-            end=center_alt + 180,
+            start=-90,
+            end=90,
             value=center_alt,
-            step=np.pi / 180,
-            title="center alt",
+            step=1,
+            title="Altitude of map center at date & time from site",
         )
         self.sliders["az"] = bokeh.models.Slider(
-            start=center_az - 360, end=center_az + 360, value=center_az, step=np.pi / 180, title="center Az"
+            start=-360,
+            end=360,
+            value=center_az,
+            step=1,
+            title="Azimuth of map center at date & time from site",
         )
         self.sliders["mjd"] = bokeh.models.Slider(
             start=self.mjd - 1,
