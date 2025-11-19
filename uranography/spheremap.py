@@ -969,10 +969,10 @@ class SphereMap:
 
         self.sliders["hour"] = bokeh.models.Slider(
             start=0.0,
-            end=23.75,
+            end=24 - 1.0 / 3600,
             value=(self.sliders["mjd"].value * 24) % 24,
             name="hour",
-            step=0.25,
+            step=1.0 / 3600.0,
             format=hour_minute_formatter,
             title="Time (UTC)",
         )
