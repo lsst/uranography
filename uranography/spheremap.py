@@ -1042,21 +1042,19 @@ class SphereMap:
         )
 
         slider_step_seconds = 60
-        def _mjd_to_rounded_ms(mjd):
-            ap_time = Time(mjd, format='mjd')
+
+        def _mjd_to_rounded_ms(mjd: float) -> int:
+            ap_time = Time(mjd, format="mjd")
             timestamp = ap_time.datetime.timestamp()
-            rounded_ms = int(timestamp/slider_step_seconds) * slider_step_seconds * 1000
+            rounded_ms = int(timestamp / slider_step_seconds) * slider_step_seconds * 1000
             return rounded_ms
 
-        #start_datetime = int(Time(self.sliders["mjd"].start, format="mjd").datetime.timestamp()/slider_step_seconds) * 60 * 1000
-        #end_datetime = int(Time(self.sliders["mjd"].end, format="mjd").datetime.timestamp()/slider_step_seconds) * 60 * 1000
-        #current_datetime = int(Time(self.sliders["mjd"].value, format="mjd").datetime.timestamp()/slider_step_seconds) * 60 * 1000
         self.sliders["datetime"] = bokeh.models.Slider(
-            start=_mjd_to_rounded_ms(self.sliders['mjd'].start),
-            end=_mjd_to_rounded_ms(self.sliders['mjd'].end),
-            value=_mjd_to_rounded_ms(self.sliders['mjd'].value),
+            start=_mjd_to_rounded_ms(self.sliders["mjd"].start),
+            end=_mjd_to_rounded_ms(self.sliders["mjd"].end),
+            value=_mjd_to_rounded_ms(self.sliders["mjd"].value),
             name="datetime_slider",
-            step=slider_step_seconds*1000,
+            step=slider_step_seconds * 1000,
             format=iso8601_formatter,
             title="Date and time (UTC)",
         )
