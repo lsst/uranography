@@ -969,10 +969,10 @@ class SphereMap:
 
         self.sliders["hour"] = bokeh.models.Slider(
             start=0.0,
-            end=23.75,
+            end=24 - 1.0 / 3600,
             value=(self.sliders["mjd"].value * 24) % 24,
             name="hour",
-            step=0.25,
+            step=1.0 / 3600.0,
             format=hour_minute_formatter,
             title="Time (UTC)",
         )
@@ -1024,6 +1024,78 @@ class SphereMap:
 
         self.visible_slider_names.append("night_date")
         self.visible_slider_names.append("hour")
+
+    def add_datetime_slider(self):
+        """Add a datetime slider for the date and time."""
+        if "mjd" not in self.sliders:
+            raise ValueError("You must add the mjd slider before the date and time sliders.")
+
+        if "datetime" in self.sliders:
+            warn("Datetime slider already added. Skipping.")
+            return
+
+        iso8601_formatter = bokeh.models.CustomJSTickFormatter(
+            code="""
+                const datetime = new Date(tick);
+                return datetime.toISOString().split('.')[0] + "Z";
+            """
+        )
+
+        slider_step_seconds = 60
+
+        def _mjd_to_rounded_ms(mjd: float) -> int:
+            ap_time = Time(mjd, format="mjd")
+            timestamp = ap_time.datetime.timestamp()
+            rounded_ms = int(timestamp / slider_step_seconds) * slider_step_seconds * 1000
+            return rounded_ms
+
+        self.sliders["datetime"] = bokeh.models.Slider(
+            start=_mjd_to_rounded_ms(self.sliders["mjd"].start),
+            end=_mjd_to_rounded_ms(self.sliders["mjd"].end),
+            value=_mjd_to_rounded_ms(self.sliders["mjd"].value),
+            name="datetime_slider",
+            step=slider_step_seconds * 1000,
+            format=iso8601_formatter,
+            title="Date and time (UTC)",
+        )
+
+        # When the datetime slider is moved,
+        # adjust the MJD slider to match
+        match_mjd_to_datetime_callback = bokeh.models.CustomJS(
+            args=dict(
+                datetime_slider=self.sliders["datetime"],
+                mjd_slider=self.sliders["mjd"],
+            ),
+            code="""
+            const new_mjd = 40587 + datetime_slider.value/86400000
+
+            // Only update if there is a significant change to avoid looping callbacks
+            if (Math.abs(new_mjd - mjd_slider.value) >= 1./(24*60)) {
+                mjd_slider.value  = new_mjd
+            }
+        """,
+        )
+        self.sliders["datetime"].js_on_change("value", match_mjd_to_datetime_callback)
+
+        # When the mjd slider is moved,
+        # adjust the datetime slider to match
+        match_datetime_to_mjd_callback = bokeh.models.CustomJS(
+            args=dict(
+                datetime_slider=self.sliders["datetime"],
+                mjd_slider=self.sliders["mjd"],
+            ),
+            code="""
+            const new_datetime =  (mjd_slider.value - 40587)*86400000
+
+            // Only update if there is a significant change
+            if (Math.abs(datetime_slider.value - new_datetime) >= 60000) {
+                datetime_slider.value = new_datetime
+            }
+        """,
+        )
+        self.sliders["mjd"].js_on_change("value", match_datetime_to_mjd_callback)
+
+        self.visible_slider_names.append("datetime")
 
     def _create_js_update_func(self, data_source):
         """Set the javascript update functions for each slider
