@@ -5,6 +5,7 @@ import numpy as np
 import panel as pn
 from IPython.display import display
 
+from .readjs import read_javascript
 from .sphere import rotate_cart
 from .spheremap import MovingSphereMap
 
@@ -28,7 +29,7 @@ class ArmillarySphere(MovingSphereMap):
     update_js_command = "updateOrthoData()"
     transform_js_fnames = ("coord_utils.js", "orthographic.js")
     transform_js_call = "return orthoTransform()"
-    proj_slider_keys = ["alt", "az", "mjd"]
+    proj_slider_keys = ["alt", "az", "mjd", "up"]
     default_title = "Orthographic projection"
 
     def to_orth_zenith(self, hpx, hpy, hpz):
@@ -134,6 +135,7 @@ class ArmillarySphere(MovingSphereMap):
                 center_alt_slider=self.sliders["alt"],
                 center_az_slider=self.sliders["az"],
                 mjd_slider=self.sliders["mjd"],
+                up_selector=self.sliders["up"],
                 lat=self.location.lat.deg,
                 lon=self.location.lon.deg,
             ),
@@ -148,6 +150,72 @@ class ArmillarySphere(MovingSphereMap):
                 self.sliders[proj_slider_key].js_on_change("value", update_func)
             except KeyError:
                 pass
+
+    def proj_transform(self, proj_coord, data_source=None, column_name=None):
+        """Return a bokeh projection transformer.
+
+        Parameters
+        ----------
+        proj_coord : `str`
+            'x' or 'y', the projection coodinate to compute
+        data_source : `bokeh.models.ColumnDataSource`
+            The data source to project. Must have either 'ra' and 'decl'
+            columns, or 'alt' and 'az'. All in degrees. Defaults to None,
+            in which case the transform takes a column of ra, decl pairs.
+        column_name : `str`
+            The name of the column with ra, decl pairs. If None, columns
+            with 'ra' and 'decl' or 'alt' and 'az' names instead. Defaults
+            to None.
+
+        Returns
+        -------
+        transform : `dict`
+            With keys `field` and `transform`, suitable for passing to
+            bokeh plotting functions.
+        """
+        try:
+            mjd_slider = self.sliders["mjd"]
+        except KeyError:
+            mjd_slider = {"value": self.mjd}
+
+        try:
+            center_alt_slider = self.sliders["alt"]
+        except KeyError:
+            center_alt_slider = {"value": 90}
+
+        try:
+            center_az_slider = self.sliders["az"]
+        except KeyError:
+            center_az_slider = {"value": 0}
+
+        try:
+            up_selector = self.sliders["up"]
+        except KeyError:
+            up_selector = {"value": "zenith is up"}
+
+        js_code = "\n".join(read_javascript(fn) for fn in self.transform_js_fnames)
+        js_code = "\n".join([js_code, self.transform_js_call])
+        js_transform = bokeh.models.CustomJSTransform(
+            args=dict(
+                data_source=data_source,
+                center_alt_slider=center_alt_slider,
+                center_az_slider=center_az_slider,
+                mjd_slider=mjd_slider,
+                up_selector=up_selector,
+                lat=self.location.lat.deg,
+                lon=self.location.lon.deg,
+                proj_coord=proj_coord,
+            ),
+            v_func=js_code,
+        )
+
+        if column_name is None:
+            for column_name in ("ra", "alt"):
+                if column_name in data_source.data:
+                    break
+
+        coord_transform = bokeh.transform.transform(column_name, js_transform)
+        return coord_transform
 
     def add_sliders(self, center_alt=90, center_az=180):
         """Add (already defined) sliders to the map."""
@@ -173,9 +241,13 @@ class ArmillarySphere(MovingSphereMap):
             step=1.0 / (24 * 60),
             title="MJD",
         )
+        self.sliders["up"] = bokeh.models.Select(
+            value="zenith is up", options=["zenith is up", "north is up"]
+        )
 
         self.visible_slider_names.append("alt")
         self.visible_slider_names.append("az")
+        self.visible_slider_names.append("up")
         self.visible_slider_names.append("mjd")
 
     def add_eq_sliders(self):
