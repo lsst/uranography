@@ -178,6 +178,152 @@ class ArmillarySphere(MovingSphereMap):
         self.visible_slider_names.append("az")
         self.visible_slider_names.append("mjd")
 
+    def add_eq_sliders(self):
+        """Add sliders to control the central RA and Decl of the map."""
+        self.sliders["ra"] = bokeh.models.Slider(
+            start=0, end=360, value=0, step=1, title="R.A. of map center"
+        )
+
+        self.sliders["decl"] = bokeh.models.Slider(
+            start=-90, end=90, value=0, step=1, title="Declination of map center"
+        )
+
+        match_horizon_to_eq_callback = bokeh.models.CustomJS(
+            args=dict(
+                alt_slider=self.sliders["alt"],
+                az_slider=self.sliders["az"],
+                ra_slider=self.sliders["ra"],
+                decl_slider=self.sliders["decl"],
+                mjd_slider=self.sliders["mjd"],
+                lat_deg=self.location.lat.deg,
+                lon_deg=self.location.lon.deg,
+            ),
+            code="""
+                const ra = ra_slider.value * Math.PI / 180
+                const decl = decl_slider.value * Math.PI / 180
+                const mjd = mjd_slider.value
+                const lat = lat_deg * Math.PI/180
+                const lon = lon_deg * Math.PI/180
+
+                const jd = mjd + 2400000.5
+                const t = (jd - 2451545.0) / 36525.0
+                const theta0 = (
+                    280.46061837
+                    + (360.98564736629 * (jd - 2451545.0))
+                    + (0.000387933 * t * t)
+                    - (t * t * t / 38710000)
+                    )
+                const lst_deg = ((theta0 + lon_deg) % 360 + 360) % 360
+                const lst = lst_deg * Math.PI / 180.0
+
+                const ha = lst - ra
+                const alt = Math.asin(
+                    Math.sin(decl) * Math.sin(lat) + Math.cos(decl) * Math.cos(lat) * Math.cos(ha)
+                )
+                let az = Math.atan2(
+                    -1 * Math.cos(decl) * Math.cos(lat) * Math.sin(ha),
+                    Math.sin(decl) - Math.sin(lat) * Math.sin(alt)
+                )
+                if (az < 0) {
+                    az = az + 2 * Math.PI
+                }
+                const alt_deg = alt * 180 / Math.PI
+                const az_deg = az * 180 / Math.PI
+
+                // only update if the change is significant to avoid recursive updates
+                const dalt = alt_deg - alt_slider.value
+                const daz = az_deg - alt_slider.value
+                if (dalt**2 + daz**2 > 2) {
+                    // Make sure both coords are updated before either change is emitted
+                    // to avoid partial changes.
+                    alt_slider.setv({ value: alt_deg }, { silent: true })
+                    az_slider.setv({ value: az_deg }, { silent: true })
+                    alt_slider.properties.value.change.emit()
+                    az_slider.properties.value.change.emit()
+                }
+
+
+                //if (Math.abs(alt_deg - alt_slider.value) >= 1) {
+                //    alt_slider.value = alt * 180 / Math.PI
+                //}
+
+                //if (Math.abs(az_deg - az_slider.value) >= 1) {
+                //    az_slider.value = az * 180 / Math.PI
+                //}
+            """,
+        )
+        for coord_name in ("ra", "decl"):
+            self.sliders[coord_name].js_on_change("value", match_horizon_to_eq_callback)
+
+        match_eq_to_horizon_callback = bokeh.models.CustomJS(
+            args=dict(
+                alt_slider=self.sliders["alt"],
+                az_slider=self.sliders["az"],
+                ra_slider=self.sliders["ra"],
+                decl_slider=self.sliders["decl"],
+                mjd_slider=self.sliders["mjd"],
+                lat_deg=self.location.lat.deg,
+                lon_deg=self.location.lon.deg,
+            ),
+            code="""
+                const alt = alt_slider.value * Math.PI / 180
+                const az = az_slider.value * Math.PI / 180
+                const mjd = mjd_slider.value
+                const lat = lat_deg * Math.PI/180
+                const lon = lon_deg * Math.PI/180
+
+                const jd = mjd + 2400000.5
+                const t = (jd - 2451545.0) / 36525.0
+                const theta0 = (
+                    280.46061837
+                    + (360.98564736629 * (jd - 2451545.0))
+                    + (0.000387933 * t * t)
+                    - (t * t * t / 38710000)
+                    )
+                const lst_deg = ((theta0 + lon_deg) % 360 + 360) % 360
+                const lst = lst_deg * Math.PI / 180.0
+
+                const decl = Math.asin(
+                    Math.sin(alt) * Math.sin(lat)
+                    + Math.cos(lat) * Math.cos(alt) * Math.cos(az)
+                    )
+                const ha = Math.atan2(
+                    -1 * Math.cos(alt) * Math.cos(lat) * Math.sin(az),
+                    Math.sin(alt) - Math.sin(lat) * Math.sin(decl)
+                )
+                const ra_not_norm = lst - ha
+                let ra = Math.atan2(Math.sin(ra_not_norm), Math.cos(ra_not_norm))
+                if (ra <0 ) {
+                    ra = ra + 2 * Math.PI
+                }
+                const ra_deg = ra * 180 / Math.PI
+                const decl_deg = decl * 180 / Math.PI
+
+                // Only update if change is significant to avoid recursive updates
+                const dra = ra_deg - ra_slider.value
+                const ddecl = decl_deg - decl_slider.value
+                if (dra**2 + ddecl**2 > 2) {
+                    ra_slider.setv({ value: ra_deg }, { silent: true })
+                    decl_slider.setv({ value: decl_deg }, { silent: true })
+                    ra_slider.properties.value.change.emit()
+                    decl_slider.properties.value.change.emit()
+                }
+
+                // if (Math.abs(ra_deg - ra_slider.value) >= 1) {
+                //    ra_slider.value = ra * 180 / Math.PI
+                //}
+
+                //if (Math.abs(decl_deg - decl_slider) >= 1) {
+                //    decl_slider.value = decl * 180 / Math.PI
+                //}
+            """,
+        )
+        for coord_name in ("alt", "az", "mjd"):
+            self.sliders[coord_name].js_on_change("value", match_eq_to_horizon_callback)
+
+        self.visible_slider_names.append("ra")
+        self.visible_slider_names.append("decl")
+
     def notebook_display(self):
         """Use panel to show the figure in within a notebook."""
         template = pn.Template(
