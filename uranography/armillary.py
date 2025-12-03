@@ -1,5 +1,7 @@
 """Interactive sky map that works like an armillary sphere."""
 
+from typing import Literal
+
 import astropy.units as u
 import bokeh
 import numpy as np
@@ -11,6 +13,8 @@ from IPython.display import display
 from .readjs import read_javascript
 from .sphere import rotate_cart
 from .spheremap import MovingSphereMap
+
+CoordinateSystem = Literal["horizon", "equatorial", "both"]
 
 
 class ArmillarySphere(MovingSphereMap):
@@ -34,6 +38,7 @@ class ArmillarySphere(MovingSphereMap):
     transform_js_call = "return orthoTransform()"
     proj_slider_keys = ["alt", "az", "mjd", "up"]
     default_title = "Orthographic projection"
+    default_coordinates: CoordinateSystem = "horizon"
 
     def to_orth_zenith(self, hpx, hpy, hpz):
         """Convert healpy vector coordinates to orthographic coordinates
@@ -253,6 +258,14 @@ class ArmillarySphere(MovingSphereMap):
         self.visible_slider_names.append("az")
         self.visible_slider_names.append("up")
         self.visible_slider_names.append("mjd")
+
+        if self.default_coordinates == "equatorial":
+            self.sliders["az"].visible = False
+            self.sliders["alt"].visible = False
+            self.sliders["up"].value = "north is up"
+
+        if self.default_coordinates in ("equatorial", "both"):
+            self.add_eq_sliders()
 
     def add_eq_sliders(self):
         """Add sliders to control the central RA and Decl of the map."""
