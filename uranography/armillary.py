@@ -233,6 +233,7 @@ class ArmillarySphere(MovingSphereMap):
             end=90,
             value=center_alt,
             step=1,
+            width=None,
             title="Altitude of map center at date & time from site",
         )
         self.sliders["az"] = bokeh.models.Slider(
@@ -240,6 +241,7 @@ class ArmillarySphere(MovingSphereMap):
             end=360,
             value=center_az,
             step=1,
+            width=None,
             title="Azimuth of map center at date & time from site",
         )
         self.sliders["mjd"] = bokeh.models.Slider(
@@ -247,10 +249,11 @@ class ArmillarySphere(MovingSphereMap):
             end=self.mjd + 1,
             value=self.mjd,
             step=1.0 / (24 * 60),
+            width=None,
             title="MJD",
         )
         self.sliders["up"] = bokeh.models.Select(
-            value="zenith is up", options=["zenith is up", "north is up"]
+            value="zenith is up", options=["zenith is up", "north is up"], width=None
         )
         self.sliders["up"].visible = False
 
@@ -283,11 +286,11 @@ class ArmillarySphere(MovingSphereMap):
         initial_decl = np.round(eq_coords.dec.deg)
 
         self.sliders["ra"] = bokeh.models.Slider(
-            start=0, end=360, value=initial_ra, step=1, title="R.A. of map center"
+            start=0, end=360, value=initial_ra, step=1, title="R.A. of map center", width=None
         )
 
         self.sliders["decl"] = bokeh.models.Slider(
-            start=-90, end=90, value=initial_decl, step=1, title="Declination of map center"
+            start=-90, end=90, value=initial_decl, step=1, title="Declination of map center", width=None
         )
 
         # If sliders for both coords are visible,
