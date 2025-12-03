@@ -1,8 +1,12 @@
 """Interactive sky map that works like an armillary sphere."""
 
+import astropy.units as u
 import bokeh
+import bokeh.events
 import numpy as np
 import panel as pn
+from astropy.coordinates import SkyCoord
+from astropy.time import Time
 from IPython.display import display
 
 from .readjs import read_javascript
@@ -252,13 +256,30 @@ class ArmillarySphere(MovingSphereMap):
 
     def add_eq_sliders(self):
         """Add sliders to control the central RA and Decl of the map."""
+
+        # Get RA and Decl positions corresponding to the current
+        # alt/az/mjd
+        eq_coords = SkyCoord(
+            alt=self.sliders["alt"].value * u.deg,
+            az=self.sliders["az"].value * u.deg,
+            obstime=Time(self.sliders["mjd"].value, format="mjd"),
+            location=self.location,
+            frame="altaz",
+        ).transform_to("icrs")
+        initial_ra = np.round(eq_coords.ra.deg)
+        initial_decl = np.round(eq_coords.dec.deg)
+
         self.sliders["ra"] = bokeh.models.Slider(
-            start=0, end=360, value=0, step=1, title="R.A. of map center"
+            start=0, end=360, value=initial_ra, step=1, title="R.A. of map center"
         )
 
         self.sliders["decl"] = bokeh.models.Slider(
-            start=-90, end=90, value=0, step=1, title="Declination of map center"
+            start=-90, end=90, value=initial_decl, step=1, title="Declination of map center"
         )
+
+        # bokeh js object to track whether we are in the middle
+        # of an update, used to prevent multiple redundant callbacks.
+        update_guard = bokeh.models.Div(text="false", visible=False)
 
         match_horizon_to_eq_callback = bokeh.models.CustomJS(
             args=dict(
@@ -269,8 +290,14 @@ class ArmillarySphere(MovingSphereMap):
                 mjd_slider=self.sliders["mjd"],
                 lat_deg=self.location.lat.deg,
                 lon_deg=self.location.lon.deg,
+                update_guard=update_guard,
             ),
             code="""
+                if (update_guard.text === "true") {
+                    return;
+                }
+                update_guard.text = "true";
+
                 const ra = ra_slider.value * Math.PI / 180
                 const decl = decl_slider.value * Math.PI / 180
                 const mjd = mjd_slider.value
@@ -305,23 +332,22 @@ class ArmillarySphere(MovingSphereMap):
                 // only update if the change is significant to avoid recursive updates
                 const dalt = alt_deg - alt_slider.value
                 const daz = az_deg - alt_slider.value
-                if (dalt**2 + daz**2 > 2) {
-                    // Make sure both coords are updated before either change is emitted
-                    // to avoid partial changes.
-                    alt_slider.setv({ value: alt_deg }, { silent: true })
-                    az_slider.setv({ value: az_deg }, { silent: true })
-                    alt_slider.properties.value.change.emit()
-                    az_slider.properties.value.change.emit()
+                if (dalt**2 > 1) {
+                    alt_slider.value = alt_deg
+                }
+                if (daz**2 > 1) {
+                    az_slider.value = az_deg
                 }
 
-
-                //if (Math.abs(alt_deg - alt_slider.value) >= 1) {
-                //    alt_slider.value = alt * 180 / Math.PI
-                //}
-
-                //if (Math.abs(az_deg - az_slider.value) >= 1) {
-                //    az_slider.value = az * 180 / Math.PI
-                //}
+                function clear_guard() {
+                    update_guard.text = "false"
+                }
+                // If we run clear_guard directly, gets called before bokeh's
+                // queued triggers get run, so the guard is ineffective. Instead,
+                // use setTimeout to put it in the browsers event loop
+                // where it will get called after the bokeh callbacks
+                // get executed.
+                setTimeout(clear_guard, 0);
             """,
         )
         for coord_name in ("ra", "decl"):
@@ -336,8 +362,14 @@ class ArmillarySphere(MovingSphereMap):
                 mjd_slider=self.sliders["mjd"],
                 lat_deg=self.location.lat.deg,
                 lon_deg=self.location.lon.deg,
+                update_guard=update_guard,
             ),
             code="""
+                if (update_guard.text === "true") {
+                    return;
+                }
+                update_guard.text = "true";
+
                 const alt = alt_slider.value * Math.PI / 180
                 const az = az_slider.value * Math.PI / 180
                 const mjd = mjd_slider.value
@@ -374,20 +406,21 @@ class ArmillarySphere(MovingSphereMap):
                 // Only update if change is significant to avoid recursive updates
                 const dra = ra_deg - ra_slider.value
                 const ddecl = decl_deg - decl_slider.value
-                if (dra**2 + ddecl**2 > 2) {
-                    ra_slider.setv({ value: ra_deg }, { silent: true })
-                    decl_slider.setv({ value: decl_deg }, { silent: true })
-                    ra_slider.properties.value.change.emit()
-                    decl_slider.properties.value.change.emit()
+                if (dra**2 >= 1) {
+                    ra_slider.value = ra_deg
                 }
-
-                // if (Math.abs(ra_deg - ra_slider.value) >= 1) {
-                //    ra_slider.value = ra * 180 / Math.PI
-                //}
-
-                //if (Math.abs(decl_deg - decl_slider) >= 1) {
-                //    decl_slider.value = decl * 180 / Math.PI
-                //}
+                if (ddecl**2 >= 1) {
+                    decl_slider.value =  decl_deg
+                }
+                function clear_guard() {
+                    update_guard.text = "false"
+                }
+                // If we run clear_guard directly, gets called before bokeh's
+                // queued triggers get run, so the guard is ineffective. Instead,
+                // use setTimeout to put it in the browsers event loop
+                // where it will get called after the bokeh callbacks
+                // get executed.
+                setTimeout(clear_guard, 0);
             """,
         )
         for coord_name in ("alt", "az", "mjd"):
