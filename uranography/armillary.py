@@ -2,7 +2,6 @@
 
 import astropy.units as u
 import bokeh
-import bokeh.events
 import numpy as np
 import panel as pn
 from astropy.coordinates import SkyCoord
@@ -248,6 +247,7 @@ class ArmillarySphere(MovingSphereMap):
         self.sliders["up"] = bokeh.models.Select(
             value="zenith is up", options=["zenith is up", "north is up"]
         )
+        self.sliders["up"].visible = False
 
         self.visible_slider_names.append("alt")
         self.visible_slider_names.append("az")
@@ -277,9 +277,18 @@ class ArmillarySphere(MovingSphereMap):
             start=-90, end=90, value=initial_decl, step=1, title="Declination of map center"
         )
 
+        # If sliders for both coords are visible,
+        # default to showing a choice for up.
+        if self.sliders["alt"].visible:
+            self.sliders["up"].visible = True
+        else:
+            self.sliders["up"].value = "north is up"
+
         # bokeh js object to track whether we are in the middle
         # of an update, used to prevent multiple redundant callbacks.
         update_guard = bokeh.models.Div(text="false", visible=False)
+
+        coord_update_js = read_javascript("match_eq_horizon_sliders.js")
 
         match_horizon_to_eq_callback = bokeh.models.CustomJS(
             args=dict(
@@ -291,64 +300,9 @@ class ArmillarySphere(MovingSphereMap):
                 lat_deg=self.location.lat.deg,
                 lon_deg=self.location.lon.deg,
                 update_guard=update_guard,
+                coord_to_update="horizon",
             ),
-            code="""
-                if (update_guard.text === "true") {
-                    return;
-                }
-                update_guard.text = "true";
-
-                const ra = ra_slider.value * Math.PI / 180
-                const decl = decl_slider.value * Math.PI / 180
-                const mjd = mjd_slider.value
-                const lat = lat_deg * Math.PI/180
-                const lon = lon_deg * Math.PI/180
-
-                const jd = mjd + 2400000.5
-                const t = (jd - 2451545.0) / 36525.0
-                const theta0 = (
-                    280.46061837
-                    + (360.98564736629 * (jd - 2451545.0))
-                    + (0.000387933 * t * t)
-                    - (t * t * t / 38710000)
-                    )
-                const lst_deg = ((theta0 + lon_deg) % 360 + 360) % 360
-                const lst = lst_deg * Math.PI / 180.0
-
-                const ha = lst - ra
-                const alt = Math.asin(
-                    Math.sin(decl) * Math.sin(lat) + Math.cos(decl) * Math.cos(lat) * Math.cos(ha)
-                )
-                let az = Math.atan2(
-                    -1 * Math.cos(decl) * Math.cos(lat) * Math.sin(ha),
-                    Math.sin(decl) - Math.sin(lat) * Math.sin(alt)
-                )
-                if (az < 0) {
-                    az = az + 2 * Math.PI
-                }
-                const alt_deg = alt * 180 / Math.PI
-                const az_deg = az * 180 / Math.PI
-
-                // only update if the change is significant to avoid recursive updates
-                const dalt = alt_deg - alt_slider.value
-                const daz = az_deg - alt_slider.value
-                if (dalt**2 > 1) {
-                    alt_slider.value = alt_deg
-                }
-                if (daz**2 > 1) {
-                    az_slider.value = az_deg
-                }
-
-                function clear_guard() {
-                    update_guard.text = "false"
-                }
-                // If we run clear_guard directly, gets called before bokeh's
-                // queued triggers get run, so the guard is ineffective. Instead,
-                // use setTimeout to put it in the browsers event loop
-                // where it will get called after the bokeh callbacks
-                // get executed.
-                setTimeout(clear_guard, 0);
-            """,
+            code=coord_update_js,
         )
         for coord_name in ("ra", "decl"):
             self.sliders[coord_name].js_on_change("value", match_horizon_to_eq_callback)
@@ -363,65 +317,9 @@ class ArmillarySphere(MovingSphereMap):
                 lat_deg=self.location.lat.deg,
                 lon_deg=self.location.lon.deg,
                 update_guard=update_guard,
+                coord_to_update="eq",
             ),
-            code="""
-                if (update_guard.text === "true") {
-                    return;
-                }
-                update_guard.text = "true";
-
-                const alt = alt_slider.value * Math.PI / 180
-                const az = az_slider.value * Math.PI / 180
-                const mjd = mjd_slider.value
-                const lat = lat_deg * Math.PI/180
-                const lon = lon_deg * Math.PI/180
-
-                const jd = mjd + 2400000.5
-                const t = (jd - 2451545.0) / 36525.0
-                const theta0 = (
-                    280.46061837
-                    + (360.98564736629 * (jd - 2451545.0))
-                    + (0.000387933 * t * t)
-                    - (t * t * t / 38710000)
-                    )
-                const lst_deg = ((theta0 + lon_deg) % 360 + 360) % 360
-                const lst = lst_deg * Math.PI / 180.0
-
-                const decl = Math.asin(
-                    Math.sin(alt) * Math.sin(lat)
-                    + Math.cos(lat) * Math.cos(alt) * Math.cos(az)
-                    )
-                const ha = Math.atan2(
-                    -1 * Math.cos(alt) * Math.cos(lat) * Math.sin(az),
-                    Math.sin(alt) - Math.sin(lat) * Math.sin(decl)
-                )
-                const ra_not_norm = lst - ha
-                let ra = Math.atan2(Math.sin(ra_not_norm), Math.cos(ra_not_norm))
-                if (ra <0 ) {
-                    ra = ra + 2 * Math.PI
-                }
-                const ra_deg = ra * 180 / Math.PI
-                const decl_deg = decl * 180 / Math.PI
-
-                // Only update if change is significant to avoid recursive updates
-                const dra = ra_deg - ra_slider.value
-                const ddecl = decl_deg - decl_slider.value
-                if (dra**2 >= 1) {
-                    ra_slider.value = ra_deg
-                }
-                if (ddecl**2 >= 1) {
-                    decl_slider.value =  decl_deg
-                }
-                function clear_guard() {
-                    update_guard.text = "false"
-                }
-                // If we run clear_guard directly, gets called before bokeh's
-                // queued triggers get run, so the guard is ineffective. Instead,
-                // use setTimeout to put it in the browsers event loop
-                // where it will get called after the bokeh callbacks
-                // get executed.
-                setTimeout(clear_guard, 0);
-            """,
+            code=coord_update_js,
         )
         for coord_name in ("alt", "az", "mjd"):
             self.sliders[coord_name].js_on_change("value", match_eq_to_horizon_callback)
