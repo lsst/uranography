@@ -188,18 +188,22 @@ const centerDecl = centerEqCoords[1]
 const centerCodecl = Math.PI / 2 - centerDecl
 const npoleCoords1 = rotateCart(1, 0, 0, centerCodecl, 0, 0, 1)
 
-/* To get the orientation
+// Get the orientation
+let orient = 0.0
+if (typeof up_selector === 'undefined' || up_selector.value === "zenith is up") {
+/* To make zenith up:
    - Get the coordinates of a point we want to be directly "up" from center (slightly higher alt, same az)
    - Look where it would end up with orientation 0
    - Get the angle of the desired top with the actual top
    - Reverse to get the rotation
-   */
-let upAlt = alt + Math.PI / 180
-let upAz = az
-const upEq = horizonToEq(lat, upAlt, upAz, lst)
-const upCart0 = eqToCart(upEq[0], upEq[1])
-const upCart3 = applyRotations(upCart0[0], upCart0[1], upCart0[2], centerCodecl, centerRA, 0, npoleCoords1)
-const orient = Math.PI / 2 - Math.atan2(upCart3[1], upCart3[0])
+*/
+    let upAlt = alt + Math.PI / 180
+    let upAz = az
+    let upEq = horizonToEq(lat, upAlt, upAz, lst)
+    const upCart0 = eqToCart(upEq[0], upEq[1])
+    const upCart3 = applyRotations(upCart0[0], upCart0[1], upCart0[2], centerCodecl, centerRA, 0, npoleCoords1)
+    orient = Math.PI / 2 - Math.atan2(upCart3[1], upCart3[0])
+}
 
 function orthoTransform() {
     const result = new Array(xs.length)

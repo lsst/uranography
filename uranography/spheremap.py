@@ -929,6 +929,7 @@ class SphereMap:
                 step=0.25 / (24 * 12),
                 title="MJD",
                 name="mjd_slider",
+                width=None,
             )
 
             self.visible_slider_names.append("mjd")
@@ -950,6 +951,7 @@ class SphereMap:
             step=1,
             format="%Y-%m-%d",
             title="Date (UTC)",
+            width=None,
         )
 
         hour_minute_formatter = bokeh.models.CustomJSTickFormatter(
@@ -975,6 +977,7 @@ class SphereMap:
             step=1.0 / 3600.0,
             format=hour_minute_formatter,
             title="Time (UTC)",
+            width=None,
         )
 
         # When the date or hour sliders are moved,
@@ -1057,6 +1060,7 @@ class SphereMap:
             step=slider_step_seconds * 1000,
             format=iso8601_formatter,
             title="Date and time (UTC)",
+            width=None,
         )
 
         # When the datetime slider is moved,
@@ -1698,6 +1702,7 @@ class SphereMap:
                 step=0.5,
                 title="Magnitude limit for bright stars",
                 name="mag_limit_slider",
+                width=None,
             )
             mag_slider.on_change("value", self.limit_stars)
 

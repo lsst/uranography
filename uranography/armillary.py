@@ -1,12 +1,20 @@
 """Interactive sky map that works like an armillary sphere."""
 
+from typing import Literal
+
+import astropy.units as u
 import bokeh
 import numpy as np
 import panel as pn
+from astropy.coordinates import SkyCoord
+from astropy.time import Time
 from IPython.display import display
 
+from .readjs import read_javascript
 from .sphere import rotate_cart
 from .spheremap import MovingSphereMap
+
+CoordinateSystem = Literal["horizon", "equatorial", "both"]
 
 
 class ArmillarySphere(MovingSphereMap):
@@ -28,8 +36,9 @@ class ArmillarySphere(MovingSphereMap):
     update_js_command = "updateOrthoData()"
     transform_js_fnames = ("coord_utils.js", "orthographic.js")
     transform_js_call = "return orthoTransform()"
-    proj_slider_keys = ["alt", "az", "mjd"]
+    proj_slider_keys = ["alt", "az", "mjd", "up"]
     default_title = "Orthographic projection"
+    default_coordinates: CoordinateSystem = "horizon"
 
     def to_orth_zenith(self, hpx, hpy, hpz):
         """Convert healpy vector coordinates to orthographic coordinates
@@ -134,6 +143,7 @@ class ArmillarySphere(MovingSphereMap):
                 center_alt_slider=self.sliders["alt"],
                 center_az_slider=self.sliders["az"],
                 mjd_slider=self.sliders["mjd"],
+                up_selector=self.sliders["up"],
                 lat=self.location.lat.deg,
                 lon=self.location.lon.deg,
             ),
@@ -149,6 +159,72 @@ class ArmillarySphere(MovingSphereMap):
             except KeyError:
                 pass
 
+    def proj_transform(self, proj_coord, data_source=None, column_name=None):
+        """Return a bokeh projection transformer.
+
+        Parameters
+        ----------
+        proj_coord : `str`
+            'x' or 'y', the projection coodinate to compute
+        data_source : `bokeh.models.ColumnDataSource`
+            The data source to project. Must have either 'ra' and 'decl'
+            columns, or 'alt' and 'az'. All in degrees. Defaults to None,
+            in which case the transform takes a column of ra, decl pairs.
+        column_name : `str`
+            The name of the column with ra, decl pairs. If None, columns
+            with 'ra' and 'decl' or 'alt' and 'az' names instead. Defaults
+            to None.
+
+        Returns
+        -------
+        transform : `dict`
+            With keys `field` and `transform`, suitable for passing to
+            bokeh plotting functions.
+        """
+        try:
+            mjd_slider = self.sliders["mjd"]
+        except KeyError:
+            mjd_slider = {"value": self.mjd}
+
+        try:
+            center_alt_slider = self.sliders["alt"]
+        except KeyError:
+            center_alt_slider = {"value": 90}
+
+        try:
+            center_az_slider = self.sliders["az"]
+        except KeyError:
+            center_az_slider = {"value": 0}
+
+        try:
+            up_selector = self.sliders["up"]
+        except KeyError:
+            up_selector = {"value": "zenith is up"}
+
+        js_code = "\n".join(read_javascript(fn) for fn in self.transform_js_fnames)
+        js_code = "\n".join([js_code, self.transform_js_call])
+        js_transform = bokeh.models.CustomJSTransform(
+            args=dict(
+                data_source=data_source,
+                center_alt_slider=center_alt_slider,
+                center_az_slider=center_az_slider,
+                mjd_slider=mjd_slider,
+                up_selector=up_selector,
+                lat=self.location.lat.deg,
+                lon=self.location.lon.deg,
+                proj_coord=proj_coord,
+            ),
+            v_func=js_code,
+        )
+
+        if column_name is None:
+            for column_name in ("ra", "alt"):
+                if column_name in data_source.data:
+                    break
+
+        coord_transform = bokeh.transform.transform(column_name, js_transform)
+        return coord_transform
+
     def add_sliders(self, center_alt=90, center_az=180):
         """Add (already defined) sliders to the map."""
         super().add_sliders()
@@ -157,6 +233,7 @@ class ArmillarySphere(MovingSphereMap):
             end=90,
             value=center_alt,
             step=1,
+            width=None,
             title="Altitude of map center at date & time from site",
         )
         self.sliders["az"] = bokeh.models.Slider(
@@ -164,6 +241,7 @@ class ArmillarySphere(MovingSphereMap):
             end=360,
             value=center_az,
             step=1,
+            width=None,
             title="Azimuth of map center at date & time from site",
         )
         self.sliders["mjd"] = bokeh.models.Slider(
@@ -171,12 +249,99 @@ class ArmillarySphere(MovingSphereMap):
             end=self.mjd + 1,
             value=self.mjd,
             step=1.0 / (24 * 60),
+            width=None,
             title="MJD",
         )
+        self.sliders["up"] = bokeh.models.Select(
+            value="zenith is up", options=["zenith is up", "north is up"], width=None
+        )
+        self.sliders["up"].visible = False
 
         self.visible_slider_names.append("alt")
         self.visible_slider_names.append("az")
+        self.visible_slider_names.append("up")
         self.visible_slider_names.append("mjd")
+
+        if self.default_coordinates == "equatorial":
+            self.sliders["az"].visible = False
+            self.sliders["alt"].visible = False
+            self.sliders["up"].value = "north is up"
+
+        if self.default_coordinates in ("equatorial", "both"):
+            self.add_eq_sliders()
+
+    def add_eq_sliders(self):
+        """Add sliders to control the central RA and Decl of the map."""
+
+        # Get RA and Decl positions corresponding to the current
+        # alt/az/mjd
+        eq_coords = SkyCoord(
+            alt=self.sliders["alt"].value * u.deg,
+            az=self.sliders["az"].value * u.deg,
+            obstime=Time(self.sliders["mjd"].value, format="mjd"),
+            location=self.location,
+            frame="altaz",
+        ).transform_to("icrs")
+        initial_ra = np.round(eq_coords.ra.deg)
+        initial_decl = np.round(eq_coords.dec.deg)
+
+        self.sliders["ra"] = bokeh.models.Slider(
+            start=0, end=360, value=initial_ra, step=1, title="R.A. of map center", width=None
+        )
+
+        self.sliders["decl"] = bokeh.models.Slider(
+            start=-90, end=90, value=initial_decl, step=1, title="Declination of map center", width=None
+        )
+
+        # If sliders for both coords are visible,
+        # default to showing a choice for up.
+        if self.sliders["alt"].visible:
+            self.sliders["up"].visible = True
+        else:
+            self.sliders["up"].value = "north is up"
+
+        # bokeh js object to track whether we are in the middle
+        # of an update, used to prevent multiple redundant callbacks.
+        update_guard = bokeh.models.Div(text="false", visible=False)
+
+        coord_update_js = read_javascript("match_eq_horizon_sliders.js")
+
+        match_horizon_to_eq_callback = bokeh.models.CustomJS(
+            args=dict(
+                alt_slider=self.sliders["alt"],
+                az_slider=self.sliders["az"],
+                ra_slider=self.sliders["ra"],
+                decl_slider=self.sliders["decl"],
+                mjd_slider=self.sliders["mjd"],
+                lat_deg=self.location.lat.deg,
+                lon_deg=self.location.lon.deg,
+                update_guard=update_guard,
+                coord_to_update="horizon",
+            ),
+            code=coord_update_js,
+        )
+        for coord_name in ("ra", "decl"):
+            self.sliders[coord_name].js_on_change("value", match_horizon_to_eq_callback)
+
+        match_eq_to_horizon_callback = bokeh.models.CustomJS(
+            args=dict(
+                alt_slider=self.sliders["alt"],
+                az_slider=self.sliders["az"],
+                ra_slider=self.sliders["ra"],
+                decl_slider=self.sliders["decl"],
+                mjd_slider=self.sliders["mjd"],
+                lat_deg=self.location.lat.deg,
+                lon_deg=self.location.lon.deg,
+                update_guard=update_guard,
+                coord_to_update="eq",
+            ),
+            code=coord_update_js,
+        )
+        for coord_name in ("alt", "az", "mjd"):
+            self.sliders[coord_name].js_on_change("value", match_eq_to_horizon_callback)
+
+        self.visible_slider_names.append("ra")
+        self.visible_slider_names.append("decl")
 
     def notebook_display(self):
         """Use panel to show the figure in within a notebook."""
