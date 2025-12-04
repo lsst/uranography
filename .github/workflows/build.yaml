@@ -15,16 +15,15 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest"]
-        python-version: ["3.11"]
+        python-version: ["3.12"]
     steps:
-      - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python-version }}
           auto-update-conda: true
           channels: conda-forge,defaults
-          miniforge-variant: Miniforge3
-          use-mamba: true
+          miniforge-version: latest
           channel-priority: strict
           show-channel-urls: true
 
@@ -39,7 +38,7 @@ jobs:
         shell: bash -l {0}
         run: |
           echo `pwd`
-          python -m pip install .
+          python -m pip install . --no-deps --no-build-isolation
       - name: conda list
         shell: bash -l {0}
         run: conda list
@@ -60,15 +59,15 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           # Need to clone everything to embed the version.
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: 3.12
           cache: "pip"
 
       - name: Install dependencies
