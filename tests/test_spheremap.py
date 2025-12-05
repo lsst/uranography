@@ -175,36 +175,33 @@ class TestSphereMap(unittest.TestCase):
         slider = test_map.sliders["mjd"]
         self.assertTrue(slider.start < TEST_MJD < slider.end)
 
-    def test_okay_add_date_time_sliders(self):
+    def test_okay_add_datetime_slider(self):
         test_map = SphereMap(mjd=TEST_MJD)
         test_map.add_mjd_slider()
-        test_map.add_date_time_sliders()
-        night_date_slider = test_map.sliders["night_date"]
-        self.assertEqual(40587 + night_date_slider.value / 86400000, test_map.sliders["mjd"].value)
+        test_map.add_datetime_slider()
+        datetime_slider = test_map.sliders["datetime"]
+        mjd_slider = test_map.sliders["mjd"]
+        ms_in_day = 24 * 60 * 60 * 1000
+        self.assertAlmostEqual(40587 * ms_in_day + datetime_slider.value, ms_in_day * mjd_slider.value)
+        self.assertAlmostEqual(40587 * ms_in_day + datetime_slider.start, ms_in_day * mjd_slider.start)
+        self.assertAlmostEqual(40587 * ms_in_day + datetime_slider.end, ms_in_day * mjd_slider.end)
 
-        hour_slider = test_map.sliders["hour"]
-        # Maybe we want to allow the hour slider to be wider than one day?
-        # This might be useful to avoid jumping dates during a night when
-        # the UTC date changes during the night.
-        self.assertTrue(hour_slider.start <= 0)
-        self.assertTrue(hour_slider.start < hour_slider.end <= 48)
-
-    def test_add_date_time_sliders_without_mjd(self):
+    def test_add_datetime_slider_without_mjd(self):
         test_map = SphereMap(mjd=TEST_MJD)
         try:
-            test_map.add_date_time_sliders()
+            test_map.add_datetime_slider()
             threw_exception = False
         except ValueError:
             threw_exception = True
 
         assert threw_exception
 
-    def test_add_date_time_sliders_multiply_called(self):
+    def test_add_datetime_slider_multiply_called(self):
         test_map = SphereMap(mjd=TEST_MJD)
         test_map.add_mjd_slider()
-        test_map.add_date_time_sliders()
+        test_map.add_datetime_slider()
         with pytest.warns(UserWarning):
-            test_map.add_date_time_sliders()
+            test_map.add_datetime_slider()
 
     def test_set_js_update_func(self):
         test_points, test_map = make_simple_map(SphereMap)

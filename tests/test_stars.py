@@ -4,6 +4,8 @@ from uranography.stars import load_bright_stars
 
 
 class TestStars(unittest.TestCase):
+
+    @unittest.skip("Avoid external depedency in testing")
     def test_load_stars(self):
         stars = load_bright_stars()
         self.assertGreater(len(stars), 9000)
