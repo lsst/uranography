@@ -6,6 +6,7 @@ import uuid
 from collections import OrderedDict, namedtuple
 from collections.abc import Iterable
 from copy import deepcopy
+from datetime import timezone
 from warnings import warn
 
 import astropy.units as u
@@ -1048,7 +1049,7 @@ class SphereMap:
 
         def _mjd_to_rounded_ms(mjd: float) -> int:
             ap_time = Time(mjd, format="mjd")
-            timestamp = ap_time.datetime.timestamp()
+            timestamp = ap_time.datetime.replace(tzinfo=timezone.utc).timestamp()
             rounded_ms = int(timestamp / slider_step_seconds) * slider_step_seconds * 1000
             return rounded_ms
 
