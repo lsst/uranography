@@ -70,6 +70,8 @@ class SphereMap:
         "line_width": 6,
         "name": "horizon_glyph",
     }
+    default_slider_kwargs = {"width": None}
+    default_select_kwargs = {"width": None}
 
     def __init__(self, plot=None, mjd=None, location="Cerro Pachon"):
         self.mjd = Time.now().mjd if mjd is None else mjd
@@ -913,30 +915,53 @@ class SphereMap:
         self.connect_controls(data_source)
         return data_source
 
-    def add_sliders(self):
-        """Add (already defined) sliders to the map."""
+    def add_sliders(self, slider_kwargs=None, select_kwargs=None):
+        """Add sliders to the map."""
 
         # In this, the base class, there are no sliders
         # to add, so just initialize the dictionary.
         self.sliders = OrderedDict()
 
-    def add_mjd_slider(self):
-        """Add a slider to control the MJD."""
+    def add_mjd_slider(self, *args, **kwargs):
+        """Add a slider to control the MJD.
+
+        Parameters
+        ----------
+        *args
+            Additional positional arguments passed to `bokeh.models.Slider`.
+        **kwargs
+            Additional keyword arguments passed to passed
+            to `bokeh.models.Slider`.
+        """
+
         if "mjd" not in self.sliders:
-            self.sliders["mjd"] = bokeh.models.Slider(
+            slider_kwargs = {}
+            slider_kwargs.update(self.default_slider_kwargs)
+            mjd_slider_kwargs = dict(
                 start=self.mjd - 1,
                 end=self.mjd + 1,
                 value=self.mjd,
                 step=0.25 / (24 * 12),
                 title="MJD",
                 name="mjd_slider",
-                width=None,
             )
+            slider_kwargs.update(mjd_slider_kwargs)
+            slider_kwargs.update(kwargs)
 
+            self.sliders["mjd"] = bokeh.models.Slider(*args, **slider_kwargs)
             self.visible_slider_names.append("mjd")
 
-    def add_datetime_slider(self):
-        """Add a datetime slider for the date and time."""
+    def add_datetime_slider(self, *args, **kwargs):
+        """Add a datetime slider for the date and time.
+
+        Parameters
+        ----------
+        *args
+            Additional positional arguments passed to `bokeh.models.Slider`.
+        **kwargs
+            Additional keyword arguments passed to passed
+            to `bokeh.models.Slider`.
+        """
         if "mjd" not in self.sliders:
             raise ValueError("You must add the mjd slider before the date and time sliders.")
 
@@ -959,16 +984,22 @@ class SphereMap:
             rounded_ms = int(timestamp / slider_step_seconds) * slider_step_seconds * 1000
             return rounded_ms
 
-        self.sliders["datetime"] = bokeh.models.Slider(
-            start=_mjd_to_rounded_ms(self.sliders["mjd"].start),
-            end=_mjd_to_rounded_ms(self.sliders["mjd"].end),
-            value=_mjd_to_rounded_ms(self.sliders["mjd"].value),
-            name="datetime_slider",
-            step=slider_step_seconds * 1000,
-            format=iso8601_formatter,
-            title="Date and time (UTC)",
-            width=None,
+        slider_kwargs = {}
+        slider_kwargs.update(self.default_slider_kwargs)
+        slider_kwargs.update(
+            dict(
+                start=_mjd_to_rounded_ms(self.sliders["mjd"].start),
+                end=_mjd_to_rounded_ms(self.sliders["mjd"].end),
+                value=_mjd_to_rounded_ms(self.sliders["mjd"].value),
+                name="datetime_slider",
+                step=slider_step_seconds * 1000,
+                format=iso8601_formatter,
+                title="Date and time (UTC)",
+            )
         )
+        slider_kwargs.update(kwargs)
+
+        self.sliders["datetime"] = bokeh.models.Slider(*args, **slider_kwargs)
 
         # When the datetime slider is moved,
         # adjust the MJD slider to match
@@ -1685,6 +1716,7 @@ class SphereMap:
             A data source that needs to update automatically in response
             to changes to the map controls.
         """
+        self.set_emit_update_func(data_source)
 
 
 class MovingSphereMap(SphereMap):
