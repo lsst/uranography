@@ -160,3 +160,7 @@ cython_debug/
 .idea/
 
 version.py
+
+# Notebook output
+notebooks/*.html
+notebooks/bsc5.dat.gz
