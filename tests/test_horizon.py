@@ -29,7 +29,7 @@ class TestHorizonMap(unittest.TestCase):
 
     def test_add_sliders(self):
         test_map = HorizonMap(mjd=TEST_MJD)
-        test_map.add_sliders()
+        test_map.add_controls()
 
     def test_many(self):
         exercise_map_class(HorizonMap)

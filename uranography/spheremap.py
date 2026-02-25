@@ -99,10 +99,34 @@ class SphereMap:
         self.plot.axis.visible = False
         self.plot.grid.visible = False
 
-        self.visible_slider_names = []
         self.update_functions = []
         self.force_update_time = bokeh.models.Div(text=str(time.time_ns()), name="update_time", visible=False)
-        self.add_sliders()
+        self.add_controls()
+
+    @property
+    def sliders(self):
+        warn(
+            "The sliders member is deprecated and will be removed; use controls instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.controls
+
+    @property
+    def slider_names(self):
+        return [n for n, c in self.controls.items() if isinstance(c, bokeh.models.Slider)]
+
+    @property
+    def visible_slider_names(self):
+        return [n for n, c in self.controls.items() if isinstance(c, bokeh.models.Slider) and c.visible]
+
+    @property
+    def control_names(self):
+        return list(self.controls.keys())
+
+    @property
+    def visible_control_names(self):
+        return [n for n, c in self.controls.items() if c.visible]
 
     @property
     def healpix_data(self):
@@ -162,8 +186,8 @@ class SphereMap:
             A viewable bokeh figure.
         """
         if self._figure is None:
-            shown_sliders = [self.sliders[sn] for sn in self.visible_slider_names]
-            self._figure = bokeh.layouts.column(self.force_update_time, self.plot, *shown_sliders)
+            shown_controls = [self.controls[sn] for sn in self.control_names]
+            self._figure = bokeh.layouts.column(self.force_update_time, self.plot, *shown_controls)
 
         return self._figure
 
@@ -240,17 +264,17 @@ class SphereMap:
             bokeh plotting functions.
         """
         try:
-            mjd_slider = self.sliders["mjd"]
+            mjd_slider = self.controls["mjd"]
         except KeyError:
             mjd_slider = {"value": self.mjd}
 
         try:
-            center_alt_slider = self.sliders["alt"]
+            center_alt_slider = self.controls["alt"]
         except KeyError:
             center_alt_slider = {"value": 90}
 
         try:
-            center_az_slider = self.sliders["az"]
+            center_az_slider = self.controls["az"]
         except KeyError:
             center_az_slider = {"value": 0}
 
@@ -915,12 +939,22 @@ class SphereMap:
         self.connect_controls(data_source)
         return data_source
 
-    def add_sliders(self, slider_kwargs=None, select_kwargs=None):
-        """Add sliders to the map."""
+    def add_sliders(self, *args, **kwargs):
+        """Add sliders and other controls to the map."""
+
+        warn(
+            "add_sliders is deprecated and will be removed; use add_controls instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.add_controls(*args, **kwargs)
+
+    def add_controls(self, slider_kwargs=None, select_kwargs=None):
+        """Add sliders and other controls to the map."""
 
         # In this, the base class, there are no sliders
         # to add, so just initialize the dictionary.
-        self.sliders = OrderedDict()
+        self.controls = OrderedDict()
 
     def add_mjd_slider(self, *args, **kwargs):
         """Add a slider to control the MJD.
@@ -934,7 +968,7 @@ class SphereMap:
             to `bokeh.models.Slider`.
         """
 
-        if "mjd" not in self.sliders:
+        if "mjd" not in self.controls:
             slider_kwargs = {}
             slider_kwargs.update(self.default_slider_kwargs)
             mjd_slider_kwargs = dict(
@@ -948,8 +982,7 @@ class SphereMap:
             slider_kwargs.update(mjd_slider_kwargs)
             slider_kwargs.update(kwargs)
 
-            self.sliders["mjd"] = bokeh.models.Slider(*args, **slider_kwargs)
-            self.visible_slider_names.append("mjd")
+            self.controls["mjd"] = bokeh.models.Slider(*args, **slider_kwargs)
 
     def add_datetime_slider(self, *args, **kwargs):
         """Add a datetime slider for the date and time.
@@ -962,10 +995,10 @@ class SphereMap:
             Additional keyword arguments passed to passed
             to `bokeh.models.Slider`.
         """
-        if "mjd" not in self.sliders:
+        if "mjd" not in self.controls:
             raise ValueError("You must add the mjd slider before the date and time sliders.")
 
-        if "datetime" in self.sliders:
+        if "datetime" in self.controls:
             warn("Datetime slider already added. Skipping.")
             return
 
@@ -988,9 +1021,9 @@ class SphereMap:
         slider_kwargs.update(self.default_slider_kwargs)
         slider_kwargs.update(
             dict(
-                start=_mjd_to_rounded_ms(self.sliders["mjd"].start),
-                end=_mjd_to_rounded_ms(self.sliders["mjd"].end),
-                value=_mjd_to_rounded_ms(self.sliders["mjd"].value),
+                start=_mjd_to_rounded_ms(self.controls["mjd"].start),
+                end=_mjd_to_rounded_ms(self.controls["mjd"].end),
+                value=_mjd_to_rounded_ms(self.controls["mjd"].value),
                 name="datetime_slider",
                 step=slider_step_seconds * 1000,
                 format=iso8601_formatter,
@@ -999,14 +1032,14 @@ class SphereMap:
         )
         slider_kwargs.update(kwargs)
 
-        self.sliders["datetime"] = bokeh.models.Slider(*args, **slider_kwargs)
+        self.controls["datetime"] = bokeh.models.Slider(*args, **slider_kwargs)
 
         # When the datetime slider is moved,
         # adjust the MJD slider to match
         match_mjd_to_datetime_callback = bokeh.models.CustomJS(
             args=dict(
-                datetime_slider=self.sliders["datetime"],
-                mjd_slider=self.sliders["mjd"],
+                datetime_slider=self.controls["datetime"],
+                mjd_slider=self.controls["mjd"],
             ),
             code="""
             const new_mjd = 40587 + datetime_slider.value/86400000
@@ -1017,14 +1050,14 @@ class SphereMap:
             }
         """,
         )
-        self.sliders["datetime"].js_on_change("value", match_mjd_to_datetime_callback)
+        self.controls["datetime"].js_on_change("value", match_mjd_to_datetime_callback)
 
         # When the mjd slider is moved,
         # adjust the datetime slider to match
         match_datetime_to_mjd_callback = bokeh.models.CustomJS(
             args=dict(
-                datetime_slider=self.sliders["datetime"],
-                mjd_slider=self.sliders["mjd"],
+                datetime_slider=self.controls["datetime"],
+                mjd_slider=self.controls["mjd"],
             ),
             code="""
             const new_datetime =  (mjd_slider.value - 40587)*86400000
@@ -1035,9 +1068,7 @@ class SphereMap:
             }
         """,
         )
-        self.sliders["mjd"].js_on_change("value", match_datetime_to_mjd_callback)
-
-        self.visible_slider_names.append("datetime")
+        self.controls["mjd"].js_on_change("value", match_datetime_to_mjd_callback)
 
     def _create_js_update_func(self, data_source):
         """Set the javascript update functions for each slider
@@ -1052,7 +1083,7 @@ class SphereMap:
                 data_source=data_source,
                 center_alt_slider={"value": 90},
                 center_az_slider={"value": 0},
-                mjd_slider=self.sliders["mjd"],
+                mjd_slider=self.controls["mjd"],
                 lat=self.location.lat.deg,
                 lon=self.location.lon.deg,
             ),
@@ -1075,7 +1106,7 @@ class SphereMap:
 
         for proj_slider_key in self.proj_slider_keys:
             try:
-                self.sliders[proj_slider_key].js_on_change("value", update_func)
+                self.controls[proj_slider_key].js_on_change("value", update_func)
             except KeyError:
                 pass
 
@@ -1096,7 +1127,7 @@ class SphereMap:
 
         for proj_slider_key in self.proj_slider_keys:
             try:
-                self.sliders[proj_slider_key].js_on_change("value", update_func)
+                self.controls[proj_slider_key].js_on_change("value", update_func)
             except KeyError:
                 pass
 
@@ -1401,7 +1432,7 @@ class SphereMap:
 
         if data_source is None:
             circle_points = self._make_horizon_circle_points(90, 0, radius=zd, **circle_kwargs)
-            if "mjd" in self.sliders:
+            if "mjd" in self.controls:
                 self.set_emit_update_func(circle_points)
         else:
             circle_points = data_source
@@ -1644,8 +1675,7 @@ class SphereMap:
             )
             mag_slider.on_change("value", self.limit_stars)
 
-            self.sliders["mag_limit"] = mag_slider
-            self.visible_slider_names.append("mag_limit")
+            self.controls["mag_limit"] = mag_slider
 
         return star_data_source
 

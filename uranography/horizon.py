@@ -56,7 +56,7 @@ class HorizonMap(MovingSphereMap):
                 data_source=data_source,
                 center_alt_slider=90,
                 center_az_slider=0,
-                mjd_slider=self.sliders["mjd"],
+                mjd_slider=self.controls["mjd"],
                 lat=self.location.lat.deg,
                 lon=self.location.lon.deg,
             ),
@@ -68,13 +68,13 @@ class HorizonMap(MovingSphereMap):
 
         for proj_slider_key in self.proj_slider_keys:
             try:
-                self.sliders[proj_slider_key].js_on_change("value", update_func)
+                self.controls[proj_slider_key].js_on_change("value", update_func)
             except KeyError:
                 pass
 
-    def add_sliders(self, slider_kwargs: dict | None = None, select_kwargs: dict | None = None):
+    def add_controls(self, slider_kwargs: dict | None = None, select_kwargs: dict | None = None):
         """Add sliders to the map."""
-        super().add_sliders(slider_kwargs=slider_kwargs, select_kwargs=select_kwargs)
+        super().add_controls(slider_kwargs=slider_kwargs, select_kwargs=select_kwargs)
 
         if slider_kwargs is None:
             slider_kwargs = {}
