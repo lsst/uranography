@@ -12,7 +12,10 @@ from warnings import warn
 import astropy.units as u
 import astropy.visualization
 import bokeh
+import bokeh.models
+import bokeh.layouts
 import bokeh.plotting
+import bokeh.transform
 import healpy as hp
 import numpy as np
 import pandas as pd
@@ -1711,7 +1714,7 @@ class SphereMap:
         points : `bokeh.models.ColumnDataSource`
             The bokeh data source with points on the ecliptic.
         """
-        ecliptic_pole = SkyCoord(lon=0 * u.degree, lat=90 * u.degree, frame="geocentricmeanecliptic").icrs
+        ecliptic_pole = SkyCoord(lon=0 * u.deg, lat=90 * u.deg, frame="geocentricmeanecliptic").icrs
         line_kwargs = deepcopy(self.default_ecliptic_line_kwargs)
         line_kwargs.update(kwargs)
         points = self.add_circle(ecliptic_pole.ra.deg, ecliptic_pole.dec.deg, line_kwargs=line_kwargs)
@@ -1725,7 +1728,7 @@ class SphereMap:
         points : `bokeh.models.ColumnDataSource`
             The bokeh data source with points on the galactic plane.
         """
-        galactic_pole = SkyCoord(l=0 * u.degree, b=90 * u.degree, frame="galactic").icrs
+        galactic_pole = SkyCoord(l=0 * u.deg, b=90 * u.deg, frame="galactic").icrs
         line_kwargs = deepcopy(self.default_galactic_plane_line_kwargs)
         line_kwargs.update(kwargs)
         points = self.add_circle(galactic_pole.ra.deg, galactic_pole.dec.deg, line_kwargs=line_kwargs)
