@@ -24,6 +24,8 @@ from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.time import Time
 from IPython.display import display
 
+assert False
+
 try:
     import healsparse
 except ModuleNotFoundError:
@@ -103,6 +105,7 @@ class SphereMap:
         self.plot.grid.visible = False
 
         self.update_functions = []
+        self.suppressed_controls = []
         self.force_update_time = bokeh.models.Div(text=str(time.time_ns()), name="update_time", visible=False)
         self.add_controls()
 
@@ -125,7 +128,7 @@ class SphereMap:
 
     @property
     def control_names(self):
-        return list(self.controls.keys())
+        return [k for k in self.controls.keys() if k not in self.suppressed_controls]
 
     @property
     def visible_control_names(self):
