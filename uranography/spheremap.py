@@ -12,8 +12,8 @@ from warnings import warn
 import astropy.units as u
 import astropy.visualization
 import bokeh
-import bokeh.models
 import bokeh.layouts
+import bokeh.models
 import bokeh.plotting
 import bokeh.transform
 import healpy as hp
@@ -23,8 +23,6 @@ import panel as pn
 from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.time import Time
 from IPython.display import display
-
-assert False
 
 try:
     import healsparse
