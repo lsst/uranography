@@ -14,11 +14,11 @@ jobs:
     name: Build and upload documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
-          python-version: "3.11"
+          python-version: "3.13"
           channels: conda-forge
           channel-priority: strict
           show-channel-urls: true
