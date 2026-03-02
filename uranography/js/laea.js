@@ -9,9 +9,9 @@ function eqToLambertAEA(ra, decl, hemisphere, west_right) {
     const rho = 2 * R * Math.sin((Math.PI / 2 - phi) / 2)
     let x = rho * Math.sin(theta)
     let y = rho * Math.cos(theta)
-    if (phi > 89.9 * Math.PI / 180) {
-        x = Math.NaN
-        y = Math.NaN
+    if (phi > 89.999 * Math.PI / 180) {
+        x = 0.0
+        y = 0.0
     }
     return [x, y]
 }

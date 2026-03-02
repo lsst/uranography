@@ -56,7 +56,7 @@ class HorizonMap(MovingSphereMap):
                 data_source=data_source,
                 center_alt_slider=90,
                 center_az_slider=0,
-                mjd_slider=self.sliders["mjd"],
+                mjd_slider=self.controls["mjd"],
                 lat=self.location.lat.deg,
                 lon=self.location.lon.deg,
             ),
@@ -68,19 +68,16 @@ class HorizonMap(MovingSphereMap):
 
         for proj_slider_key in self.proj_slider_keys:
             try:
-                self.sliders[proj_slider_key].js_on_change("value", update_func)
+                self.controls[proj_slider_key].js_on_change("value", update_func)
             except KeyError:
                 pass
 
-    def add_sliders(self):
+    def add_controls(self, slider_kwargs: dict | None = None, select_kwargs: dict | None = None):
         """Add sliders to the map."""
-        super().add_sliders()
-        self.sliders["mjd"] = bokeh.models.Slider(
-            start=self.mjd - 1,
-            end=self.mjd + 1,
-            value=self.mjd,
-            step=1.0 / (24 * 60),
-            title="MJD",
-        )
+        super().add_controls(slider_kwargs=slider_kwargs, select_kwargs=select_kwargs)
 
-        self.visible_slider_names.append("mjd")
+        if slider_kwargs is None:
+            slider_kwargs = {}
+            slider_kwargs.update(self.default_slider_kwargs)
+
+        self.add_mjd_slider(**slider_kwargs)

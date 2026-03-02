@@ -167,20 +167,20 @@ class TestSphereMap(unittest.TestCase):
 
     def test_add_sliders(self):
         test_map = SphereMap(mjd=TEST_MJD)
-        test_map.add_sliders()
+        test_map.add_controls()
 
     def test_add_mjd_slider(self):
         test_map = SphereMap(mjd=TEST_MJD)
         test_map.add_mjd_slider()
-        slider = test_map.sliders["mjd"]
+        slider = test_map.controls["mjd"]
         self.assertTrue(slider.start < TEST_MJD < slider.end)
 
     def test_okay_add_datetime_slider(self):
         test_map = SphereMap(mjd=TEST_MJD)
         test_map.add_mjd_slider()
         test_map.add_datetime_slider()
-        datetime_slider = test_map.sliders["datetime"]
-        mjd_slider = test_map.sliders["mjd"]
+        datetime_slider = test_map.controls["datetime"]
+        mjd_slider = test_map.controls["mjd"]
         ms_in_day = 24 * 60 * 60 * 1000
         self.assertAlmostEqual(40587 * ms_in_day + datetime_slider.value, ms_in_day * mjd_slider.value)
         self.assertAlmostEqual(40587 * ms_in_day + datetime_slider.start, ms_in_day * mjd_slider.start)

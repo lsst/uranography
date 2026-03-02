@@ -140,10 +140,10 @@ class ArmillarySphere(MovingSphereMap):
         update_func = bokeh.models.CustomJS(
             args=dict(
                 data_source=data_source,
-                center_alt_slider=self.sliders["alt"],
-                center_az_slider=self.sliders["az"],
-                mjd_slider=self.sliders["mjd"],
-                up_selector=self.sliders["up"],
+                center_alt_slider=self.controls["alt"],
+                center_az_slider=self.controls["az"],
+                mjd_slider=self.controls["mjd"],
+                up_selector=self.controls["up"],
                 lat=self.location.lat.deg,
                 lon=self.location.lon.deg,
             ),
@@ -155,7 +155,7 @@ class ArmillarySphere(MovingSphereMap):
 
         for proj_slider_key in self.proj_slider_keys:
             try:
-                self.sliders[proj_slider_key].js_on_change("value", update_func)
+                self.controls[proj_slider_key].js_on_change("value", update_func)
             except KeyError:
                 pass
 
@@ -182,22 +182,22 @@ class ArmillarySphere(MovingSphereMap):
             bokeh plotting functions.
         """
         try:
-            mjd_slider = self.sliders["mjd"]
+            mjd_slider = self.controls["mjd"]
         except KeyError:
             mjd_slider = {"value": self.mjd}
 
         try:
-            center_alt_slider = self.sliders["alt"]
+            center_alt_slider = self.controls["alt"]
         except KeyError:
             center_alt_slider = {"value": 90}
 
         try:
-            center_az_slider = self.sliders["az"]
+            center_az_slider = self.controls["az"]
         except KeyError:
             center_az_slider = {"value": 0}
 
         try:
-            up_selector = self.sliders["up"]
+            up_selector = self.controls["up"]
         except KeyError:
             up_selector = {"value": "zenith is up"}
 
@@ -225,80 +225,84 @@ class ArmillarySphere(MovingSphereMap):
         coord_transform = bokeh.transform.transform(column_name, js_transform)
         return coord_transform
 
-    def add_sliders(self, center_alt=90, center_az=180):
-        """Add (already defined) sliders to the map."""
-        super().add_sliders()
-        self.sliders["alt"] = bokeh.models.Slider(
+    def add_controls(self, center_alt=90, center_az=180, slider_kwargs=None, select_kwargs=None):
+        """Add sliders to the map."""
+        if slider_kwargs is None:
+            slider_kwargs = self.default_slider_kwargs
+
+        if select_kwargs is None:
+            select_kwargs = self.default_select_kwargs
+
+        super().add_controls(slider_kwargs=slider_kwargs, select_kwargs=select_kwargs)
+        self.controls["alt"] = bokeh.models.Slider(
             start=-90,
             end=90,
             value=center_alt,
             step=1,
-            width=None,
             title="Altitude of map center at date & time from site",
+            **slider_kwargs,
         )
-        self.sliders["az"] = bokeh.models.Slider(
+        self.controls["az"] = bokeh.models.Slider(
             start=-360,
             end=360,
             value=center_az,
             step=1,
-            width=None,
             title="Azimuth of map center at date & time from site",
+            **slider_kwargs,
         )
-        self.sliders["mjd"] = bokeh.models.Slider(
+        self.controls["mjd"] = bokeh.models.Slider(
             start=self.mjd - 1,
             end=self.mjd + 1,
             value=self.mjd,
             step=1.0 / (24 * 60),
-            width=None,
             title="MJD",
+            **slider_kwargs,
         )
-        self.sliders["up"] = bokeh.models.Select(
-            value="zenith is up", options=["zenith is up", "north is up"], width=None
-        )
-        self.sliders["up"].visible = False
 
-        self.visible_slider_names.append("alt")
-        self.visible_slider_names.append("az")
-        self.visible_slider_names.append("up")
-        self.visible_slider_names.append("mjd")
+        self.controls["up"] = bokeh.models.Select(
+            value="zenith is up", options=["zenith is up", "north is up"], **select_kwargs
+        )
+        self.controls["up"].visible = False
 
         if self.default_coordinates == "equatorial":
-            self.sliders["az"].visible = False
-            self.sliders["alt"].visible = False
-            self.sliders["up"].value = "north is up"
+            self.controls["az"].visible = False
+            self.controls["alt"].visible = False
+            self.controls["up"].value = "north is up"
 
         if self.default_coordinates in ("equatorial", "both"):
             self.add_eq_sliders()
 
-    def add_eq_sliders(self):
+    def add_eq_sliders(self, slider_kwargs=None):
         """Add sliders to control the central RA and Decl of the map."""
+        if slider_kwargs is None:
+            slider_kwargs = self.default_slider_kwargs
 
         # Get RA and Decl positions corresponding to the current
         # alt/az/mjd
         eq_coords = SkyCoord(
-            alt=self.sliders["alt"].value * u.deg,
-            az=self.sliders["az"].value * u.deg,
-            obstime=Time(self.sliders["mjd"].value, format="mjd"),
+            alt=self.controls["alt"].value * u.deg,
+            az=self.controls["az"].value * u.deg,
+            obstime=Time(self.controls["mjd"].value, format="mjd"),
             location=self.location,
             frame="altaz",
         ).transform_to("icrs")
         initial_ra = np.round(eq_coords.ra.deg)
         initial_decl = np.round(eq_coords.dec.deg)
 
-        self.sliders["ra"] = bokeh.models.Slider(
-            start=0, end=360, value=initial_ra, step=1, title="R.A. of map center", width=None
+        self.controls["ra"] = bokeh.models.Slider(
+            start=0, end=360, value=initial_ra, step=1, title="R.A. of map center", **slider_kwargs
         )
 
-        self.sliders["decl"] = bokeh.models.Slider(
-            start=-90, end=90, value=initial_decl, step=1, title="Declination of map center", width=None
+        self.controls["decl"] = bokeh.models.Slider(
+            start=-90, end=90, value=initial_decl, step=1, title="Declination of map center", **slider_kwargs
         )
 
         # If sliders for both coords are visible,
         # default to showing a choice for up.
-        if self.sliders["alt"].visible:
-            self.sliders["up"].visible = True
+        if self.controls["alt"].visible:
+            self.controls["up"].visible = True
         else:
-            self.sliders["up"].value = "north is up"
+            self.controls["up"].value = "north is up"
 
         # bokeh js object to track whether we are in the middle
         # of an update, used to prevent multiple redundant callbacks.
@@ -308,11 +312,11 @@ class ArmillarySphere(MovingSphereMap):
 
         match_horizon_to_eq_callback = bokeh.models.CustomJS(
             args=dict(
-                alt_slider=self.sliders["alt"],
-                az_slider=self.sliders["az"],
-                ra_slider=self.sliders["ra"],
-                decl_slider=self.sliders["decl"],
-                mjd_slider=self.sliders["mjd"],
+                alt_slider=self.controls["alt"],
+                az_slider=self.controls["az"],
+                ra_slider=self.controls["ra"],
+                decl_slider=self.controls["decl"],
+                mjd_slider=self.controls["mjd"],
                 lat_deg=self.location.lat.deg,
                 lon_deg=self.location.lon.deg,
                 update_guard=update_guard,
@@ -321,15 +325,15 @@ class ArmillarySphere(MovingSphereMap):
             code=coord_update_js,
         )
         for coord_name in ("ra", "decl"):
-            self.sliders[coord_name].js_on_change("value", match_horizon_to_eq_callback)
+            self.controls[coord_name].js_on_change("value", match_horizon_to_eq_callback)
 
         match_eq_to_horizon_callback = bokeh.models.CustomJS(
             args=dict(
-                alt_slider=self.sliders["alt"],
-                az_slider=self.sliders["az"],
-                ra_slider=self.sliders["ra"],
-                decl_slider=self.sliders["decl"],
-                mjd_slider=self.sliders["mjd"],
+                alt_slider=self.controls["alt"],
+                az_slider=self.controls["az"],
+                ra_slider=self.controls["ra"],
+                decl_slider=self.controls["decl"],
+                mjd_slider=self.controls["mjd"],
                 lat_deg=self.location.lat.deg,
                 lon_deg=self.location.lon.deg,
                 update_guard=update_guard,
@@ -338,10 +342,7 @@ class ArmillarySphere(MovingSphereMap):
             code=coord_update_js,
         )
         for coord_name in ("alt", "az", "mjd"):
-            self.sliders[coord_name].js_on_change("value", match_eq_to_horizon_callback)
-
-        self.visible_slider_names.append("ra")
-        self.visible_slider_names.append("decl")
+            self.controls[coord_name].js_on_change("value", match_eq_to_horizon_callback)
 
     def notebook_display(self):
         """Use panel to show the figure in within a notebook."""
